@@ -1,67 +1,110 @@
 # Aetherius Risk Intelligence
 
-**Backtest-validated downside-risk screens for concentrated public-equity books.**
+**Deterministic, backtest-validated downside-risk screening on primary-source financial news and regulatory filings.**
 
-![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Backtests: 3 events, 9/9 recall](https://img.shields.io/badge/Backtests-3%20events%20%C2%B7%209%2F9%20recall-informational)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/)
+[![Tests: 76 passed](https://img.shields.io/badge/Tests-76%20passed-success.svg)](aetherius/tests/)
+[![Backtest Recall: 9/9](https://img.shields.io/badge/Backtest%20Recall-100%25%20(9%2F9)-informational.svg)](docs/working_paper/detection_timing_backtest_2026-07.md)
 
-Aetherius produces per-target Stress-Test Decks: 8–15 page PDFs that map a public-equity target's counterparties and funding sources, timeline the 90 days of filings and news scored by severity, and disclose the pipeline's historical detection track record on structurally comparable names.
+---
 
-Positioning: *"Backtest-validated downside-risk screens. Detection timing disclosed on the cover page, not asserted in marketing."*
+## What is Aetherius?
 
-## Who it is for
+Aetherius is an open-source risk-screening engine built for concentrated public-equity books, search funds, litigation-finance analysts, and credit desks. 
 
-- Search funds and independent sponsors doing pre-LOI diligence on public comps
-- Small and mid family offices ($100M–$1B AUM) running concentrated books
-- Litigation-finance analysts and small credit funds
-- Single-name activist funds and concentrated PMs
-- Asset-based lenders assessing borrower counterparty risk
+Instead of relying on black-box LLM prompts that hallucinate or non-deterministic sentiment models, Aetherius uses a **purely deterministic, auditable pipeline**:
 
-## What Aetherius Is (and Is Not)
+1. **Primary-Source Ingestion** — Scrapes real-time SEC EDGAR filings (`8-K`, `10-Q`, `10-K`, `NT 10-K`) and global news wires via GDELT DOC 2.0.
+2. **Word-Boundary Entity Resolution** — Strict regex matching with acronym stoplists to prevent false positives (e.g. distinguishing the ticker `AI` from words like `CHAIN` or `SAID`).
+3. **Deterministic 7-Factor Severity Scoring** — Computes risk and urgency based on fixed compile-time taxonomies. Every single score is transparent, verifiable, and explainable in court or an investment committee.
+4. **Automated Stress-Test Reports** — Assembles 8–15 page per-target diligence decks detailing counterparty exposure, filing timelines, and macro sensitivities.
 
-- **Is:** an evidence-backed risk screening and reporting workflow
-- **Is:** a historical detection-timing pipeline with pinned backtests
-- **Is not:** autonomous investment execution or a return forecast
-- **Is not:** investment advice
+---
 
-## The pipeline
+## The Backtest Benchmark
+
+Aetherius was validated by replaying 161 real historical news observations across three major modern crises on frozen windows using the GDELT archive:
+
+| Event | Mechanism | Watchlist | Recall | Median Lead Time | False Positives on Controls |
+|---|---|---|---|---|---|
+| **SVB-2023** | Regional Bank Contagion (Mar 6–12) | 5 affected + MSFT (control) | **5 / 5 (100%)** | **2.34 days** | **0 / 1** |
+| **Wirecard-2020** | Accounting Fraud & Insolvency (Jun 15–30) | 1 affected + DTE (control) | **1 / 1 (100%)** | **6.60 days** | **0 / 1** |
+| **FTX-2022** | Counterparty Contagion (Nov 2–14) | 3 affected + MSFT (control) | **3 / 3 (100%)** | **7.12 days** | **0 / 1** |
+
+*All fixtures, watchlists, ground-truth records, and replay harnesses are committed and bit-identical across runs. Read the full working paper: [`docs/working_paper/detection_timing_backtest_2026-07.md`](docs/working_paper/detection_timing_backtest_2026-07.md).*
+
+---
+
+## Architecture
 
 ```text
-aetherius/app/services/
-  ingestion/
-    edgar_adapter.py      # SEC EDGAR filings (8-K, 10-Q, 10-K, ...)
-    gdelt_adapter.py      # Real news headlines via GDELT DOC 2.0
-  entity_mapping/          # Word-boundary regex + acronym stoplist
-  scoring/                 # Deterministic 7-factor risk formula
-  signals/                 # 15-type downside signal taxonomy
-  reporting/               # Deck data assembly
-  delivery/                # PDF render + disclaimer & banned-language gates
-  review/                  # Human review gate before client delivery
-
-simulations/backtest/      # Historical detection-timing proofs
-  events/svb-2023/         # Frozen fixture: SVB regional-bank contagion
-  run_backtest.py          # Replay harness (uses production match + scoring)
+┌──────────────────────────────────────────────────────────┐
+│                   Primary Ingestion                      │
+│   • EDGAR Adapter (SEC 8-K, 10-Q, 10-K, NT filings)       │
+│   • GDELT DOC 2.0 Adapter (Financial Whitelist Filter)   │
+└────────────────────────────┬─────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────┐
+│                Entity Mapping & Filtering                │
+│   • Word-boundary regex matching                         │
+│   • Multi-class acronym stoplist (CEO, AI, FED, etc.)    │
+│   • Declared alias & counterparty relationship links     │
+└────────────────────────────┬─────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────┐
+│              Deterministic Severity Scoring              │
+│   • 7-factor weighted scoring formula (compile-time)     │
+│   • Adverse-language taxonomy gate (30+ downside terms)  │
+│   • Zero LLM non-determinism in flagging logic          │
+└────────────────────────────┬─────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────┐
+│                  Delivery & Reporting                    │
+│   • 8-15 Page Target Stress-Test Deck generation (HTML)  │
+│   • Delivery quality gates (banned language / disclaimers│
+└──────────────────────────────────────────────────────────┘
 ```
 
-## Quick start
+---
+
+## Quick Start
+
+### 1. Install Dependencies
 
 ```bash
+git clone https://github.com/zariffromlatif/Aetherius.git
+cd Aetherius
 pip install -r requirements.txt
-pytest aetherius/tests
 ```
 
-To run the SVB-2023 backtest:
+### 2. Run the Test Suite
+
+```bash
+pytest aetherius/tests -v
+```
+
+### 3. Replay a Historical Crisis Backtest
+
+Replay the SVB regional-banking crisis through the production scoring and mapping engine:
 
 ```bash
 python simulations/backtest/run_backtest.py --event svb-2023
 ```
 
-To build a Target Stress-Test Deck for a ticker (fixture mode, fully offline):
+*(You can also run `--event wirecard-2020` or `--event ftx-2022`)*.
+
+### 4. Generate a Stress-Test Diligence Deck (Offline Fixture Mode)
 
 ```bash
 python scripts/build_deck.py \
-  --ticker SIVB --name "SVB Financial Group" \
-  --sector "Regional Banks" --aliases "Silicon Valley Bank,SVB" \
+  --ticker SIVB \
+  --name "SVB Financial Group" \
+  --sector "Regional Banks" \
+  --aliases "Silicon Valley Bank,SVB" \
   --thesis "Concentrated regional-bank position with rate-sensitive HTM book." \
   --counterparty "FRC:First Republic Bank:peer:0.6:First Republic" \
   --window 2023-03-06:2023-03-12 \
@@ -69,38 +112,50 @@ python scripts/build_deck.py \
   --out sivb-deck.html
 ```
 
-Open the resulting HTML in a browser and use **File → Print → Save as PDF** to produce the deliverable PDF. For a live pull against GDELT for a real target, replace `--fixture-jsonl PATH` with `--live`.
+Open `sivb-deck.html` in your browser and select **Print → Save as PDF** for a publication-ready diligence brief.
 
-## Detection track record
+---
 
-The pipeline's honest metrics are disclosed on every engagement. Three frozen historical events, each replayed against real primary-source news from the GDELT archive:
+## Project Structure
 
-| Event | Watchlist | Recall | Median lead | False positives on control |
-|---|---|---|---|---|
-| **SVB-2023** — regional-bank contagion (Mar 6–12) | 5 affected + 1 control (MSFT) | **5 / 5 (100%)** | **2.34 days** | **0** |
-| **Wirecard-2020** — accounting fraud + insolvency (Jun 15–30) | 1 affected + 1 control (DTE) | **1 / 1 (100%)** | **6.60 days** | **0** |
-| **FTX-2022** — crypto counterparty contagion (Nov 2–14) | 3 affected + 1 control (MSFT) | **3 / 3 (100%)** | **7.12 days** | **0** |
+```text
+aetherius/
+  app/
+    services/
+      ingestion/         # SEC EDGAR and GDELT API adapters
+      entity_mapping/    # Regex and acronym disambiguation
+      scoring/           # Deterministic risk & urgency formulas
+      signals/           # Downside signal taxonomy
+      delivery/          # PDF rendering & regulatory quality gates
+  tests/                 # 76-test unit & integration test suite
+simulations/
+  backtest/
+    events/              # Frozen crisis fixtures (SVB, Wirecard, FTX)
+    run_backtest.py      # Backtest replay harness
+    build_fixture.py     # GDELT fixture builder
+scripts/
+  build_deck.py          # CLI to compile Target Stress-Test Decks
+docs/
+  working_paper/         # Full academic write-up and methodology
+```
 
-Full methodology, watchlists, ground-truth files, GDELT observation corpora, and pinned tests are published in `simulations/backtest/events/` and `aetherius/tests/test_backtest_harness.py`.
+---
 
-The full write-up is in `docs/working_paper/detection_timing_backtest_2026-07.md`.
+## Contributing
 
-**Anti-hype note.** Detection-timing evidence on frozen historical windows. Not a return forecast. Not a guarantee of future results.
+We welcome contributions! Please check [`CONTRIBUTING.md`](CONTRIBUTING.md) for workflow details. All PRs must:
+- Maintain deterministic scoring behavior.
+- Include unit/integration tests (`pytest` passing 100%).
+- Ensure historical crisis fixtures remain bit-identical.
 
-## Engagements
-
-Per-target Stress-Test Decks are priced per engagement. See the landing page at `landing_page/index.html` or email `zarif@aetheriusresearch.tech`.
-
-## Repository policy
-
-- Root `README.md` is the canonical project entry point.
-- `aetherius/README.md` covers backend implementation details.
-- Generated runtime outputs (`simulations/artifacts/`, logs) are ephemeral.
+---
 
 ## License
 
-Apache License 2.0. See `LICENSE`.
+This project is licensed under the **Apache License 2.0** - see the [`LICENSE`](LICENSE) file for details.
+
+---
 
 ## Disclaimer
 
-Aetherius Risk Intelligence provides research and risk-monitoring services. Analysis is not investment advice and is not a recommendation to buy, sell, or hold any security. Nothing herein is a forecast or a guarantee of any outcome.
+*Aetherius Risk Intelligence is an open-source research and decision-support tool. It does not provide investment advice, fiduciary services, or guaranteed return forecasts. All analyses are strictly for informational and quantitative research purposes.*

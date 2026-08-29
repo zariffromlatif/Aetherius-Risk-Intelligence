@@ -39,6 +39,7 @@ simulations/backtest/events/*/_gdelt_cache/
 dist/
 build/
 *.egg-info/
+out/
 
 # Private / local-only material — never publish to GitHub
 private/
