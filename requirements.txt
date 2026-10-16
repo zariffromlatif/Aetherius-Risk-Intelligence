@@ -18,3 +18,4 @@ PyJWT
 passlib[bcrypt]
 python-multipart
 ruff==0.16.8
+markdown
