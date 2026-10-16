@@ -237,6 +237,7 @@
       Detection track record on 3 frozen historical crises &mdash;
       {{ track_record.aggregate.detected_total }} of {{ track_record.aggregate.affected_total }} affected names detected
       at elevated / high severity, {{ track_record.aggregate.false_positives_total }} false positives on controls.
+      Flags coincided with, and did not precede, the first press report of each stock falling.
       Full methodology in the working paper referenced on the final page.
       Aetherius is an information and risk-monitoring service, not investment advice.
     </div>
@@ -400,13 +401,14 @@
     <h2 class="section">Historical evidence on structurally comparable events</h2>
     <p>The scoring and mapping pipeline used in this deck is the same one replayed against three frozen historical crises. Detection is measured on information available at the time.</p>
     <p style="font-size: 9pt; color: #7a1a1a;"><strong>These figures are the historical backtest, not results for {{ cover.target_ticker }}.</strong> They describe how the pipeline performed on the three past events below &mdash; they are not a prediction or a claim about this engagement.</p>
+    <p style="font-size: 9pt;"><strong>Timing caveat.</strong> "Lead" is measured to each name's formal resolution (receivership, insolvency, Chapter 11). Measured against the first headline reporting the stock already falling, no first flag came earlier: the pipeline triages a market reaction quickly, it does not anticipate it. See Section 4.5 of the working paper.</p>
     <table>
       <thead>
         <tr>
           <th>Event</th>
           <th style="width: 15%;">Affected</th>
           <th style="width: 15%;">Detected</th>
-          <th style="width: 20%;">Median lead</th>
+          <th style="width: 20%;">Median lead to resolution</th>
           <th style="width: 15%;">FP on control</th>
         </tr>
       </thead>
