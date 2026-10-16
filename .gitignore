@@ -50,3 +50,6 @@ RELEASE_CHECKLIST.md
 invoice_template.html
 AI Business Idea Generation.pdf
 *.pdf
+
+# The typeset working paper is a deliverable, not a build artifact.
+!docs/working_paper/detection_timing_backtest_2026-07.pdf

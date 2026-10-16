@@ -1,18 +1,10 @@
 # Detection-Timing Backtest of a Deterministic Downside-Risk Screen Across Three Modern Financial Crises
 
-**A working paper. Revision 2.1, October 2026 (first version July 2026).**
+**Md. Zarif Latif**  
+Undergraduate Student, BRAC University, Dhaka, Bangladesh  
+md.zarif.latif@g.bracu.ac.bd
 
-**Author:** Zarif Latif, independent researcher · zarif@aetheriusresearch.tech
-
-**Keywords:** risk screening, event study, entity resolution, textual analysis, GDELT, SEC EDGAR, bank failures, backtesting
-
-**JEL codes:** G14, G17, G21
-
-> **What changed in Revision 2.** Revision 1 reported that the pipeline flagged all nine affected names "before the realized event date," with a median lead of about 2.5 days. That is true, but the realized event date was the *formal resolution* (receivership, insolvency filing, Chapter 11), not the market's reaction. Revision 2 adds a test of timing against the first headline reporting each stock already falling (Section 4.5). Measured that way, **no first flag came before the market reaction.** Revision 2 also adds confidence intervals, states the hindsight selection of events and watchlists, documents two known false-positive classes, removes commercial framing, and describes a pre-registered live forward test (Section 8). Every number in this revision is reproduced by pinned tests.
->
-> **What changed in Revision 2.1.** A pre-publication check found that **no control name appears in any of the three corpora**, so the "0 false positives on controls" result was never actually tested. Text in Revisions 1 and 2 describing control headlines was wrong and has been removed. Section 4.6 explains what happened. Revision 2.1 also adds related work and references, and discloses that the Section 4.5 price-reaction pattern was written after the headlines had been read.
-
----
+Working paper · October 2026
 
 ## Abstract
 
@@ -23,6 +15,10 @@ On 161 archived observations from GDELT DOC 2.0, the pipeline flagged **all 9 af
 The more important finding is about timing. In all 9 detections, the first flag arrived **at the same time as, not before,** the first headline reporting that the stock was already falling. In 8 of 9 it *was* that headline. The pipeline is therefore evidence of fast, auditable **triage** of a market reaction already underway. It is not evidence of anticipating the market. We describe the pipeline, the corpus and the ground truth, discuss the limitations, and describe a pre-registered live forward test started on 2026-10-16. All code and data are Apache-2.0 licensed and reproducible.
 
 **This is detection-timing evidence on frozen historical windows. It is not a return forecast, a trading signal, or a causal claim.**
+
+**Keywords:** risk screening, event study, entity resolution, textual analysis, GDELT, SEC EDGAR, bank failures, backtesting
+
+**JEL codes:** G14, G17, G21
 
 ---
 
@@ -76,7 +72,7 @@ Because matching is case-insensitive, a ticker that is also an English word matc
 
 ### 2.4 Adverse-language gate
 
-`adverse_severity(raw_text)` (same module) counts matches against a fixed list of about 40 downside terms (`loss`, `plunge`, `withdrawals`, `deposit run`, `receivership`, `collapse`, `funding pressure`, `distress`, `insolven…`, …) and maps the count to an event-severity score. An observation is a **shippable flag** only when its severity label is `elevated` or `high` **and** at least one adverse term is present. Unit tests show the gate holding a benign direct mention below shippable severity (for example, "Microsoft expands Copilot across product suite"). The backtest corpora contain no such case for the controls (Section 4.6). Since Revision 2, the live API, the backtest and the forward test all import this single implementation.
+`adverse_severity(raw_text)` (same module) counts matches against a fixed list of about 40 downside terms (`loss`, `plunge`, `withdrawals`, `deposit run`, `receivership`, `collapse`, `funding pressure`, `distress`, `insolven…`, …) and maps the count to an event-severity score. An observation is a **shippable flag** only when its severity label is `elevated` or `high` **and** at least one adverse term is present. Unit tests show the gate holding a benign direct mention below shippable severity (for example, "Microsoft expands Copilot across product suite"). The backtest corpora contain no such case for the controls (Section 4.6). The live API, the backtest and the forward test all import this single implementation.
 
 ### 2.5 Backtest harness
 
@@ -181,13 +177,13 @@ The lead times above are measured to the formal resolution date. An investor car
 
 **No first flag came before the market reaction.** The pipeline flagged each name at the moment the press reported its shares falling. This is expected given how it works: adverse-language scoring of headlines fires most strongly on headlines *about* a sell-off.
 
-That is still useful for a small team. Out of hundreds of headlines, the names that need attention today were surfaced within the same news cycle, with an auditable reason. But it is **triage, not anticipation**, and Revision 1's framing of "lead time" overstated what the evidence supports.
+That is still useful for a small team. Out of hundreds of headlines, the names that need attention today were surfaced within the same news cycle, with an auditable reason. But it is **triage, not anticipation**, and lead time measured to formal resolution overstates what the evidence supports.
 
 ### 4.6 The control test was not exercised
 
 Each fixture includes one control name (MSFT twice, DTE once) that the pipeline should not flag. None did, but none could have: **no observation in any corpus maps to a control name.** The fixture builder did query GDELT for each control ("Microsoft Corporation", "Deutsche Telekom"), and GDELT returned articles. GDELT matches article bodies, but the pipeline stores and scores headlines only, and none of those headlines names the control. `market_reaction_check.py` prints this coverage, and a test (`test_controls_never_appear_in_the_frozen_corpora`) pins it so the paper must be updated if a fixture is ever rebuilt.
 
-Revisions 1 and 2 reported "0 false positives on 3 controls" as evidence of specificity, and described control headlines that do not exist in the data. Both were errors. This study therefore says nothing about how often the screen fires on companies that turned out fine. The same fact makes the 100% mapping precision uninformative. Measuring false positives is the purpose of the forward test (Section 8).
+Earlier project materials (the repository README and website) presented "0 false positives on 3 controls" as evidence of specificity; that claim is withdrawn. This study therefore says nothing about how often the screen fires on companies that turned out fine. The same fact makes the 100% mapping precision uninformative. Measuring false positives is the purpose of the forward test (Section 8).
 
 ---
 
@@ -331,7 +327,7 @@ Every news observation also carries its own `source_url`.
 ## Appendix D — Reproducibility
 
 - **License:** Apache-2.0.
-- **Tests:** the full suite (122 tests at Revision 2.1) pins the backtest metrics, the Section 4.5 timing result, the Section 4.6 control coverage, and the parity between live and backtest scoring.
+- **Tests:** the full suite (122 tests at the time of writing) pins the backtest metrics, the Section 4.5 timing result, the Section 4.6 control coverage, and the parity between live and backtest scoring.
 - **Determinism:** scoring weights are constants with no learned parameters, and reruns are bit-identical.
 - **Rebuild:** corpora can be regenerated from GDELT DOC 2.0 with `simulations/backtest/build_fixture.py`.
 

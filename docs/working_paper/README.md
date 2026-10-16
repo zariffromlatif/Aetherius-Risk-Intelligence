@@ -1,19 +1,21 @@
 # Working Paper
 
 **Detection-Timing Backtest of a Deterministic Downside-Risk Screen Across Three Modern Financial Crises**
-Zarif Latif. Revision 2, October 2026 (first version July 2026).
+Md. Zarif Latif (BRAC University). Working paper, October 2026.
 
-Revision 2's headline finding: the pipeline flagged all 9 affected names before their formal resolution dates, but **no first flag came before the first headline reporting the stock already falling** (Section 4.5). The paper presents the system as fast, auditable triage, not anticipation.
+Headline finding: the pipeline flagged all 9 affected names before their formal resolution dates, but **no first flag came before the first headline reporting the stock already falling** (Section 4.5). The paper presents the system as fast, auditable triage, not anticipation.
 
 ## Files
 
 - `detection_timing_backtest_2026-07.md` — the paper. Renders on GitHub, Substack, arXiv-style preprint sites. **This is the primary artifact.**
+- `detection_timing_backtest_2026-07.pdf` — the typeset PDF (the version posted on SSRN).
 - `detection_timing_backtest_2026-07.html` — self-contained HTML. Open in any browser. Save-as-PDF via browser print dialog for a shareable attachment.
 
 ## Rebuild the HTML
 
 ```bash
-python scripts/render_working_paper.py
+python scripts/render_working_paper.py          # HTML only
+python scripts/render_working_paper.py --pdf    # HTML + typeset PDF (WeasyPrint)
 ```
 
 The HTML has all CSS inlined and no external assets, so a single file emailed / posted anywhere renders correctly on any modern browser.
@@ -49,6 +51,6 @@ pytest aetherius/tests/test_market_reaction_check.py -v
 
 ## Posting as a preprint
 
-- **SSRN** (ssrn.com, free): good fit under Financial Economics → Risk Management. Upload a PDF made from the HTML (browser print → Save as PDF). No affiliation is required.
+- **SSRN** (ssrn.com, free): good fit under Financial Economics → Risk Management. Upload `detection_timing_backtest_2026-07.pdf` (build it with `python scripts/render_working_paper.py --pdf`).
 - **arXiv q-fin.RM / q-fin.CP**: a first-time submitter usually needs an endorsement from an existing arXiv author in that category. Ask a professor or a researcher whose work you cite.
 - In the abstract, keep the Revision 2 framing: triage at the market reaction, not anticipation.
