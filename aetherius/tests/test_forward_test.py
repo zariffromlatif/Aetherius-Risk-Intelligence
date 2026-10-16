@@ -87,3 +87,78 @@ def test_report_flags_watchlist_changes() -> None:
     ]
     report = summ.build_report(runs, [], [], {}, {})
     assert "changed during the test" in report
+
+
+class _FakeClock:
+    def __init__(self) -> None:
+        self.t = 0.0
+
+    def __call__(self) -> float:
+        return self.t
+
+    def sleep(self, seconds: float) -> None:
+        self.t += seconds
+
+
+def _fake_fetch(fail_first: set[str], fail_always: set[str], clock: _FakeClock, cost: float = 1.0):
+    calls: list[str] = []
+
+    def fetch(company_name, **_kwargs):
+        clock.t += cost
+        calls.append(company_name)
+        if company_name in fail_always or (company_name in fail_first and calls.count(company_name) == 1):
+            raise RuntimeError("429 Too Many Requests")
+        return [{"url": f"https://example.com/{company_name}", "title": f"{company_name} news", "domain": "example.com",
+                 "seendate": "20261016T000000Z"}]
+
+    return fetch, calls
+
+
+GDELT_ITEMS = [{"ticker": t, "company_name": t, "aliases": []} for t in ("AAA", "BBB", "CCC")]
+NOW = datetime(2026, 10, 16, tzinfo=timezone.utc)
+
+
+def test_gdelt_retry_pass_recovers_throttled_names() -> None:
+    clock = _FakeClock()
+    fetch, calls = _fake_fetch({"BBB"}, set(), clock)
+    obs, errors = ft.fetch_gdelt(GDELT_ITEMS, NOW, NOW, None, fetch=fetch, sleep=clock.sleep, clock=clock)
+    assert errors == []
+    assert calls == ["AAA", "BBB", "CCC", "BBB"]
+    assert len(obs) == 3
+
+
+def test_gdelt_persistent_failure_is_reported_not_silent() -> None:
+    clock = _FakeClock()
+    fetch, calls = _fake_fetch(set(), {"CCC"}, clock)
+    obs, errors = ft.fetch_gdelt(GDELT_ITEMS, NOW, NOW, None, fetch=fetch, sleep=clock.sleep, clock=clock)
+    assert calls.count("CCC") == 2
+    assert errors == ["gdelt:CCC:429 Too Many Requests"]
+    assert len(obs) == 2
+
+
+def test_gdelt_budget_stops_new_requests_and_names_skipped() -> None:
+    clock = _FakeClock()
+    fetch, calls = _fake_fetch(set(), set(), clock, cost=100.0)
+    obs, errors = ft.fetch_gdelt(
+        GDELT_ITEMS, NOW, NOW, None, budget_seconds=150.0, fetch=fetch, sleep=clock.sleep, clock=clock
+    )
+    assert calls == ["AAA", "BBB"]
+    assert errors == ["gdelt:CCC:skipped: run time budget spent"]
+    assert clock.t < 150.0 + ft.GDELT_PAUSE_SECONDS + 100.0  # no pointless retry cooldown
+
+
+def test_report_counts_news_fetch_failures_per_name() -> None:
+    runs = [
+        {"recorded_at": "2026-10-16T00:00:00Z", "watchlist_sha256": "a", "errors": ["gdelt:NVDA:429 Too Many Requests"]},
+        {"recorded_at": "2026-10-17T00:00:00Z", "watchlist_sha256": "a", "errors": ["gdelt:NVDA:429", "edgar:X:no-cik"]},
+    ]
+    report = summ.build_report(runs, [], [], {}, {})
+    assert "| NVDA | 0 | 0 | 0.00 | 0 | 0 | 0 | 2 |" in report
+    assert "| X |" not in report
+
+
+def test_report_lists_every_preregistered_name() -> None:
+    runs = [{"recorded_at": "2026-10-16T00:00:00Z", "watchlist_sha256": "a", "errors": []}]
+    report = summ.build_report(runs, [], [], {}, {}, ["AAPL", "XOM"])
+    assert "| AAPL | 0 | 0 | 0.00 | 0 | 0 | 0 | 0 |" in report
+    assert "| XOM |" in report

@@ -18,6 +18,8 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
+    # GDELT retries are bounded by a 40-minute budget in run_forward_test.py.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
