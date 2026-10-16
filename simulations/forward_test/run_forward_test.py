@@ -46,6 +46,9 @@ from app.services.ingestion.gdelt_adapter import (  # noqa: E402
 
 WATCHLIST_PATH = HERE / "watchlist.json"
 GDELT_PAUSE_SECONDS = 6.0
+GDELT_RETRY_PAUSE_SECONDS = 15.0
+GDELT_COOLDOWN_SECONDS = 120.0
+GDELT_BUDGET_SECONDS = 40 * 60.0
 EDGAR_LOOKBACK_DAYS = 3
 
 
@@ -99,38 +102,78 @@ def _iso(dt: datetime) -> str:
     return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def fetch_gdelt(items: list[dict], start: datetime, end: datetime, client: httpx.Client) -> tuple[list[dict], list[str]]:
-    observations: dict[str, dict] = {}
-    errors: list[str] = []
-    for i, item in enumerate(items):
-        if i:
-            time.sleep(GDELT_PAUSE_SECONDS)
-        try:
-            articles = fetch_articles(
-                company_name=item["company_name"],
-                window_start=start,
-                window_end=end,
-                aliases=item.get("aliases"),
-                client=client,
-                domain_whitelist=DOWNSIDE_DOMAINS,
-            )
-        except Exception as exc:  # noqa: BLE001 - one failed name must not abort the run
-            errors.append(f"gdelt:{item['ticker']}:{exc}")
+def _gdelt_rows(item: dict, articles: list[dict], observations: dict[str, dict]) -> None:
+    for a in articles:
+        url = (a.get("url") or "").strip()
+        if not url or f"gdelt:{url}" in observations:
             continue
-        for a in articles:
-            url = (a.get("url") or "").strip()
-            if not url or f"gdelt:{url}" in observations:
+        observations[f"gdelt:{url}"] = {
+            "key": f"gdelt:{url}",
+            "source_type": "news",
+            "source_name": a.get("domain") or "GDELT news",
+            "source_url": url,
+            "title": a.get("title"),
+            "raw_text": _article_to_text(item["company_name"], a),
+            "observed_at": _iso(_parse_gdelt_seendate(a.get("seendate") or "")),
+            "source_confidence": 0.75,
+        }
+
+
+def fetch_gdelt(
+    items: list[dict],
+    start: datetime,
+    end: datetime,
+    client: httpx.Client,
+    budget_seconds: float = GDELT_BUDGET_SECONDS,
+    fetch=fetch_articles,
+    sleep=time.sleep,
+    clock=time.monotonic,
+) -> tuple[list[dict], list[str]]:
+    """Fetch GDELT news for every item, with a retry pass and a time budget.
+
+    GDELT throttles shared CI addresses hard. Names that fail the first pass
+    are retried once after a cooldown with a longer pause. Once the budget is
+    spent no new request starts; every name without news coverage is reported
+    in ``errors`` (``gdelt:<TICKER>:...``) so gaps are never silent.
+    """
+    observations: dict[str, dict] = {}
+    last_error: dict[str, str] = {}
+    deadline = clock() + budget_seconds
+    pending = list(items)
+    for attempt, pause in enumerate((GDELT_PAUSE_SECONDS, GDELT_RETRY_PAUSE_SECONDS)):
+        if attempt:
+            if not pending or clock() >= deadline:
+                break
+            print(f"gdelt: retrying {len(pending)} name(s) after {GDELT_COOLDOWN_SECONDS:.0f}s cooldown", flush=True)
+            sleep(GDELT_COOLDOWN_SECONDS)
+        failed = []
+        for i, item in enumerate(pending):
+            if clock() >= deadline:
+                failed += pending[i:]
+                for rest in pending[i:]:
+                    last_error[rest["ticker"]] = "skipped: run time budget spent"
+                break
+            if i:
+                sleep(pause)
+            try:
+                articles = fetch(
+                    company_name=item["company_name"],
+                    window_start=start,
+                    window_end=end,
+                    aliases=item.get("aliases"),
+                    client=client,
+                    domain_whitelist=DOWNSIDE_DOMAINS,
+                )
+            except Exception as exc:  # noqa: BLE001 - one failed name must not abort the run
+                last_error[item["ticker"]] = str(exc)
+                failed.append(item)
+                print(f"gdelt: {item['ticker']} failed (pass {attempt + 1}): {str(exc)[:80]}", flush=True)
                 continue
-            observations[f"gdelt:{url}"] = {
-                "key": f"gdelt:{url}",
-                "source_type": "news",
-                "source_name": a.get("domain") or "GDELT news",
-                "source_url": url,
-                "title": a.get("title"),
-                "raw_text": _article_to_text(item["company_name"], a),
-                "observed_at": _iso(_parse_gdelt_seendate(a.get("seendate") or "")),
-                "source_confidence": 0.75,
-            }
+            last_error.pop(item["ticker"], None)
+            _gdelt_rows(item, articles, observations)
+            print(f"gdelt: {item['ticker']} ok, {len(articles)} article(s) (pass {attempt + 1})", flush=True)
+        pending = failed
+    errors = [f"gdelt:{item['ticker']}:{last_error[item['ticker']]}" for item in pending]
     return list(observations.values()), errors
 
 

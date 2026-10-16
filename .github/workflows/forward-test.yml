@@ -18,6 +18,8 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
+    # GDELT retries are bounded by a 40-minute budget in run_forward_test.py.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -42,7 +44,8 @@ jobs:
 
       - name: Run forward test
         env:
-          SEC_USER_AGENT: ${{ vars.SEC_USER_AGENT || 'Aetherius Forward Test zarif@aetheriusresearch.tech' }}
+          # Prefer a secret: repo variables are printed in plain text in public Actions logs.
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || vars.SEC_USER_AGENT || 'Aetherius Forward Test zarif@aetheriusresearch.tech' }}
         run: |
           python simulations/forward_test/run_forward_test.py --log-dir _log/log --user-agent "$SEC_USER_AGENT"
           cp simulations/forward_test/watchlist.json _log/watchlist.json

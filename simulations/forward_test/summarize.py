@@ -73,13 +73,30 @@ def fetch_closes(ticker: str, start: datetime, end: datetime) -> list[tuple[date
     ]
 
 
-def build_report(runs: list[dict], observations: list[dict], flags: list[dict], labels: dict, prices: dict) -> str:
+def build_report(
+    runs: list[dict],
+    observations: list[dict],
+    flags: list[dict],
+    labels: dict,
+    prices: dict,
+    watchlist_tickers: list[str] | None = None,
+) -> str:
     L = ["# Aetherius Forward Test — Live Report", ""]
     if not runs:
         return "\n".join(L + ["No runs recorded yet."]) + "\n"
     first, last = runs[0]["recorded_at"], runs[-1]["recorded_at"]
     weeks = max((_parse(last) - _parse(first)).days / 7.0, 1 / 7.0)
-    tickers = sorted({o["ticker"] for o in observations} | {f["ticker"] for f in flags})
+    # A run whose news fetch failed for a name leaves a coverage gap; count them per name.
+    news_failures = Counter(
+        e.split(":", 2)[1] for r in runs for e in r.get("errors", []) if e.startswith("gdelt:") and e.count(":") >= 2
+    )
+    # Every pre-registered name gets a row, so a quiet name is visibly quiet rather than missing.
+    tickers = sorted(
+        set(watchlist_tickers or [])
+        | {o["ticker"] for o in observations}
+        | {f["ticker"] for f in flags}
+        | set(news_failures)
+    )
     L += [
         f"- Runs: {len(runs)} ({first} → {last}), ~{weeks:.1f} weeks",
         f"- Watchlist SHA-256: `{runs[-1]['watchlist_sha256']}`"
@@ -90,8 +107,11 @@ def build_report(runs: list[dict], observations: list[dict], flags: list[dict], 
         "",
         "## Alert burden by name",
         "",
-        "| Ticker | Matched obs | Flags | Flags / week | Labeled | Material | Not material |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        f"News fetch failures count runs (of {len(runs)}) in which GDELT returned nothing for that name; "
+        "those days are coverage gaps, not quiet days.",
+        "",
+        "| Ticker | Matched obs | Flags | Flags / week | Labeled | Material | Not material | News fetch failures |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     obs_by = Counter(o["ticker"] for o in observations)
     flag_by = Counter(f["ticker"] for f in flags)
@@ -100,7 +120,8 @@ def build_report(runs: list[dict], observations: list[dict], flags: list[dict], 
         lab = [labels[f["key"]] for f in own if f["key"] in labels]
         mat = sum(1 for x in lab if x.get("material"))
         L.append(
-            f"| {t} | {obs_by[t]} | {flag_by[t]} | {flag_by[t] / weeks:.2f} | {len(lab)} | {mat} | {len(lab) - mat} |"
+            f"| {t} | {obs_by[t]} | {flag_by[t]} | {flag_by[t] / weeks:.2f} | {len(lab)} | {mat} | {len(lab) - mat} "
+            f"| {news_failures[t]} |"
         )
     labeled = [labels[f["key"]] for f in flags if f["key"] in labels]
     L += ["", "## Precision (human-labeled)", ""]
@@ -169,7 +190,9 @@ def main() -> None:
 
     out = args.out or args.log_dir / "REPORT.md"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(build_report(runs, observations, flags, labels, prices), encoding="utf-8")
+    watchlist = json.loads((HERE / "watchlist.json").read_text(encoding="utf-8"))
+    tickers = [i["ticker"] for i in watchlist["items"]]
+    out.write_text(build_report(runs, observations, flags, labels, prices, tickers), encoding="utf-8")
     print(f"wrote {out}")
 
 
