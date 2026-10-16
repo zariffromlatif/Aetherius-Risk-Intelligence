@@ -1,17 +1,24 @@
 # Detection-Timing Backtest of a Deterministic Downside-Risk Screen Across Three Modern Financial Crises
 
-**A working paper. Revision 2, October 2026 (first version July 2026).**
-**Author:** Zarif Latif · zarif@aetheriusresearch.tech
+**A working paper. Revision 2.1, October 2026 (first version July 2026).**
+
+**Author:** Zarif Latif, independent researcher · zarif@aetheriusresearch.tech
+
+**Keywords:** risk screening, event study, entity resolution, textual analysis, GDELT, SEC EDGAR, bank failures, backtesting
+
+**JEL codes:** G14, G17, G21
 
 > **What changed in Revision 2.** Revision 1 reported that the pipeline flagged all nine affected names "before the realized event date," with a median lead of about 2.5 days. That is true, but the realized event date was the *formal resolution* (receivership, insolvency filing, Chapter 11), not the market's reaction. Revision 2 adds a test of timing against the first headline reporting each stock already falling (Section 4.5). Measured that way, **no first flag came before the market reaction.** Revision 2 also adds confidence intervals, states the hindsight selection of events and watchlists, documents two known false-positive classes, removes commercial framing, and describes a pre-registered live forward test (Section 8). Every number in this revision is reproduced by pinned tests.
+>
+> **What changed in Revision 2.1.** A pre-publication check found that **no control name appears in any of the three corpora**, so the "0 false positives on controls" result was never actually tested. Text in Revisions 1 and 2 describing control headlines was wrong and has been removed. Section 4.6 explains what happened. Revision 2.1 also adds related work and references, and discloses that the Section 4.5 price-reaction pattern was written after the headlines had been read.
 
 ---
 
 ## Abstract
 
-We replay a deterministic entity-mapping and severity-scoring pipeline against real news headlines from three well-studied financial crises: the March 2023 U.S. regional-bank contagion, the June 2020 Wirecard AG accounting fraud and the November 2022 FTX collapse. For each affected name we report detection timing, mapping precision and behavior on unrelated control names.
+We replay a deterministic entity-mapping and severity-scoring pipeline against real news headlines from three well-studied financial crises: the March 2023 U.S. regional-bank contagion, the June 2020 Wirecard AG accounting fraud and the November 2022 FTX collapse. For each affected name we report detection timing and how it compares with the market's own reaction.
 
-On 161 archived observations from GDELT DOC 2.0, the pipeline flagged **all 9 affected names** at "elevated" or "high" severity before each name's formal resolution date, with a median lead of 2.48 days. It raised **no flags on the 3 control names**. With these small samples, the 95% confidence interval for recall is 66–100%, and the control false-positive rate could be anywhere from 0% to 71%.
+On 161 archived observations from GDELT DOC 2.0, the pipeline flagged **all 9 affected names** at "elevated" or "high" severity before each name's formal resolution date, with a median lead of 2.48 days. With only nine names, the 95% confidence interval for recall is 66–100%. The study's three control names never appear in the corpus, so it provides **no evidence about false positives**.
 
 The more important finding is about timing. In all 9 detections, the first flag arrived **at the same time as, not before,** the first headline reporting that the stock was already falling. In 8 of 9 it *was* that headline. The pipeline is therefore evidence of fast, auditable **triage** of a market reaction already underway. It is not evidence of anticipating the market. We describe the pipeline, the corpus and the ground truth, discuss the limitations, and describe a pre-registered live forward test started on 2026-10-16. All code and data are Apache-2.0 licensed and reproducible.
 
@@ -29,7 +36,11 @@ Concentrated public-equity books, such as those of search funds, small family of
 2. **Deterministic severity scoring.** Each observation is scored against a fixed adverse-language list, so the same input always gets the same answer and every score can be audited.
 3. **False-positive discipline.** Adverse content on names outside the book, and benign content on names inside it, should stay quiet.
 
-The question here is narrow: **on the headlines that actually existed at the time, when would this pipeline have flagged the affected names, both relative to their formal resolution and relative to the market's own reaction, and would it have stayed quiet on unrelated controls?**
+The question here is narrow: **on the headlines that actually existed at the time, when would this pipeline have flagged the affected names, both relative to their formal resolution and relative to the market's own reaction?** False-positive behavior is the subject of the live forward test (Section 8), because this corpus cannot measure it (Section 4.6).
+
+### 1.1 Related work
+
+Media text carries information about stock returns and firm fundamentals: pessimistic language in a daily newspaper column predicts downward pressure on market prices (Tetlock, 2007), and the share of negative words in firm-specific news predicts earnings and returns (Tetlock, Saar-Tsechansky and Macskassy, 2008). Word lists matter in finance: Loughran and McDonald (2011) show that general-purpose negative-word dictionaries misclassify many common financial terms, and build finance-specific lists from 10-K filings. This paper's adverse-term list is smaller and hand-written. Replacing it with the Loughran–McDonald negative list is a natural robustness test (Section 8). Event timing here follows the event-study idea of measuring information arrival around a dated event (Fama, Fisher, Jensen and Roll, 1969), but uses headline timestamps, not returns. The news archive is the GDELT project (Leetaru and Schrodt, 2013).
 
 ---
 
@@ -65,7 +76,7 @@ Because matching is case-insensitive, a ticker that is also an English word matc
 
 ### 2.4 Adverse-language gate
 
-`adverse_severity(raw_text)` (same module) counts matches against a fixed list of about 40 downside terms (`loss`, `plunge`, `withdrawals`, `deposit run`, `receivership`, `collapse`, `funding pressure`, `distress`, `insolven…`, …) and maps the count to an event-severity score. An observation is a **shippable flag** only when its severity label is `elevated` or `high` **and** at least one adverse term is present. This gate, not the matcher, keeps the MSFT control quiet: MSFT headlines match MSFT directly but contain no adverse terms. Since Revision 2, the live API, the backtest and the forward test all import this single implementation.
+`adverse_severity(raw_text)` (same module) counts matches against a fixed list of about 40 downside terms (`loss`, `plunge`, `withdrawals`, `deposit run`, `receivership`, `collapse`, `funding pressure`, `distress`, `insolven…`, …) and maps the count to an event-severity score. An observation is a **shippable flag** only when its severity label is `elevated` or `high` **and** at least one adverse term is present. Unit tests show the gate holding a benign direct mention below shippable severity (for example, "Microsoft expands Copilot across product suite"). The backtest corpora contain no such case for the controls (Section 4.6). Since Revision 2, the live API, the backtest and the forward test all import this single implementation.
 
 ### 2.5 Backtest harness
 
@@ -103,14 +114,14 @@ An earlier SVB fixture of hand-written summaries was removed from the repository
 |---|---|
 | Events | 3 |
 | Observations replayed | 161 |
-| Watchlist names (union) | 12 (9 affected + 3 controls) |
+| Watchlist names (union) | 12 (9 affected + 3 controls, the controls never appear in the corpus) |
 | Affected names flagged before resolution date | **9 / 9** (95% CI 66–100%) |
 | Median lead to resolution date | 2.48 days (mean 3.58) |
-| Mapping precision | 100% |
-| False positives on controls | 0 / 3 (95% CI 0–71%) |
+| Mapping precision | 100% (uninformative: no control was ever matched) |
+| False positives on controls | not tested (Section 4.6) |
 | First flags that came **before** the first price-reaction headline | **0 / 9** (Section 4.5) |
 
-Confidence intervals are exact (Clopper–Pearson) binomial intervals. The nine names span three failure modes: bank runs (SVB, Signature, First Republic, Western Alliance, PacWest), accounting fraud (Wirecard) and crypto counterparty contagion (Silvergate, Coinbase, Signature).
+Confidence intervals are exact (Clopper–Pearson, 1934) binomial intervals. The nine names span three failure modes: bank runs (SVB, Signature, First Republic, Western Alliance, PacWest), accounting fraud (Wirecard) and crypto counterparty contagion (Silvergate, Coinbase, Signature).
 
 ### 4.2 SVB-2023
 
@@ -125,8 +136,6 @@ Confidence intervals are exact (Clopper–Pearson) binomial intervals. The nine 
 | FRC | 2023-03-09 17:45Z | 2023-03-13 | 3.26 | high | fool.com: *Why Shares of First Republic Bank Are Falling Today* |
 | WAL | 2023-03-10 15:45Z | 2023-03-13 | 2.34 | elevated | investors.com: *SVB Trading Halted, Company Seeks Buyer, Financial Stocks Shudder* |
 | PACW | 2023-03-10 15:45Z | 2023-03-13 | 2.34 | high | investors.com: *SVB Trading Halted, Company Seeks Buyer, Financial Stocks Shudder* |
-
-MSFT appeared in benign product coverage only, scored zero adverse severity, and never shipped.
 
 ### 4.3 Wirecard-2020
 
@@ -156,7 +165,7 @@ Both 7.12-day leads come from a single article. Without it, both would shrink su
 
 The lead times above are measured to the formal resolution date. An investor cares about a different clock: when the *price* moved. The evidence titles in Sections 4.2–4.4 already hint at the answer, since almost every one reports a stock that is falling.
 
-`simulations/backtest/market_reaction_check.py` makes this precise. For each detected name, it finds the earliest observation in the corpus that maps to that name and reports a price decline already underway, using a fixed pattern that pairs a price noun ("shares", "stock") with a falling verb ("plunge", "drops", "falling", …). It then compares that headline's time with the first flag.
+`simulations/backtest/market_reaction_check.py` makes this precise. For each detected name, it finds the earliest observation in the corpus that maps to that name and reports a price decline already underway, using a pattern that pairs a price noun ("shares", "stock") with a falling verb ("plunge", "drops", "falling", …). It then compares that headline's time with the first flag. The pattern was written after the headlines had been read, so this is not a blind test. Every classification is listed below with its headline, and each can be checked by eye.
 
 | Event | Ticker | First flag | First price-reaction headline | Flag lead over reaction | Flag headline itself reports a fall |
 |---|---|---|---|---|---|
@@ -173,6 +182,12 @@ The lead times above are measured to the formal resolution date. An investor car
 **No first flag came before the market reaction.** The pipeline flagged each name at the moment the press reported its shares falling. This is expected given how it works: adverse-language scoring of headlines fires most strongly on headlines *about* a sell-off.
 
 That is still useful for a small team. Out of hundreds of headlines, the names that need attention today were surfaced within the same news cycle, with an auditable reason. But it is **triage, not anticipation**, and Revision 1's framing of "lead time" overstated what the evidence supports.
+
+### 4.6 The control test was not exercised
+
+Each fixture includes one control name (MSFT twice, DTE once) that the pipeline should not flag. None did, but none could have: **no observation in any corpus maps to a control name.** The fixture builder did query GDELT for each control ("Microsoft Corporation", "Deutsche Telekom"), and GDELT returned articles. GDELT matches article bodies, but the pipeline stores and scores headlines only, and none of those headlines names the control. `market_reaction_check.py` prints this coverage, and a test (`test_controls_never_appear_in_the_frozen_corpora`) pins it so the paper must be updated if a fixture is ever rebuilt.
+
+Revisions 1 and 2 reported "0 false positives on 3 controls" as evidence of specificity, and described control headlines that do not exist in the data. Both were errors. This study therefore says nothing about how often the screen fires on companies that turned out fine. The same fact makes the 100% mapping precision uninformative. Measuring false positives is the purpose of the forward test (Section 8).
 
 ---
 
@@ -193,7 +208,7 @@ That is still useful for a small team. Out of hundreds of headlines, the names t
 
 ### 5.2 Sample size
 
-Three events, nine affected names and three controls make a very small sample. 9/9 recall is consistent with a true recall as low as 66%, and 0/3 control false positives is consistent with a true control false-positive rate as high as 71% (exact binomial 95% intervals). One added event that failed would deserve equal reporting.
+Three events and nine affected names make a very small sample. 9/9 recall is consistent with a true recall as low as 66% (exact binomial 95% interval). There is no false-positive sample at all (Section 4.6). One added event that failed would deserve equal reporting.
 
 ### 5.3 Hindsight selection
 
@@ -201,7 +216,7 @@ The three events, the affected names, and the decision to include each name were
 
 ### 5.4 Lookahead
 
-The harness sorts observations by GDELT `seendate` and only counts flags strictly before the resolution date (pinned by `test_time_safety_lead_time_never_negative`). Regulatory anchors are inserted at a small offset from the resolution date. Removing them leaves SVB recall (5/5) and median lead (2.34 days) unchanged.
+The harness sorts observations by GDELT `seendate` and only counts flags strictly before the resolution date (pinned by `test_time_safety_lead_time_never_negative`). Regulatory anchors are inserted at a small offset from the resolution date. Removing them, and keeping news headlines only, leaves recall and median lead unchanged for all three events (5/5 and 2.34 days, 1/1 and 6.60 days, 3/3 and 7.12 days).
 
 ### 5.5 Known false-positive classes
 
@@ -245,7 +260,7 @@ python simulations/backtest/build_fixture.py --event svb-2023
 - **A causal claim.** Deposit-run headlines two days before a receivership are downstream of balance-sheet stress, not upstream of it.
 - **A guarantee.** The pipeline could miss a future event that unfolds in a way not seen here.
 
-What it does show is narrower: a small, deterministic, auditable pipeline running on real headlines would have put nine affected names in front of a reviewer within the same news cycle as their market reaction, ahead of formal resolution, without firing on three unrelated controls.
+What it does show is narrower: a small, deterministic, auditable pipeline running on real headlines would have put nine affected names in front of a reviewer within the same news cycle as their market reaction, ahead of formal resolution. It does not show how often the screen raises false alarms.
 
 ---
 
@@ -253,15 +268,35 @@ What it does show is narrower: a small, deterministic, auditable pipeline runnin
 
 1. **Pre-registered live forward test (running since 2026-10-16).** `simulations/forward_test/` fixes a 20-name, all-`normal`-priority watchlist chosen for coverage rather than expected distress, and commits its hash. A daily GitHub Action scores live GDELT news and SEC filings with the *frozen* backtest scorer and appends timestamped rows to the `forward-test-log` branch. The planned report covers alerts per name per week, human-labeled precision, and the stock's 5-session return before and after each flag.
 2. **Rule-based event selection.** Choose events by a rule fixed in advance (for example, every listed U.S. bank failure on the FDIC list in a period, or every S&P 500 constituent with a ≥50% drawdown in a year) instead of by fame.
-3. **Price-anchored evaluation.** Measure timing against the first ≥10% close-to-close decline, using price data, not headlines.
-4. **Matcher fixes.** Use case-sensitive ticker matching or require a cashtag for ticker-word symbols, and add whole-word adverse terms. These would be evaluated as a *new* model version, with the frozen version kept for comparison.
-5. **Filing text.** Score 8-K item text (for example, Item 2.06 impairments or Item 4.02 non-reliance) instead of metadata.
+3. **Real controls.** Rebuild each fixture with control headlines that actually name the control company, ideally many controls per event chosen by a rule (for example, every same-sector name that did not fail), and report false positives with confidence intervals.
+4. **Finance-specific word lists.** Re-run with the Loughran and McDonald (2011) negative list in place of the hand-written adverse terms.
+5. **Price-anchored evaluation.** Measure timing against the first ≥10% close-to-close decline, using price data, not headlines.
+6. **Matcher fixes.** Use case-sensitive ticker matching or require a cashtag for ticker-word symbols, and add whole-word adverse terms. These would be evaluated as a *new* model version, with the frozen version kept for comparison.
+7. **Filing text.** Score 8-K item text (for example, Item 2.06 impairments or Item 4.02 non-reliance) instead of metadata.
+
+---
+
+## References
+
+Clopper, C. J., and Pearson, E. S. (1934). The use of confidence or fiducial limits illustrated in the case of the binomial. *Biometrika*, 26(4), 404–413.
+
+Fama, E. F., Fisher, L., Jensen, M. C., and Roll, R. (1969). The adjustment of stock prices to new information. *International Economic Review*, 10(1), 1–21.
+
+Leetaru, K., and Schrodt, P. A. (2013). GDELT: Global data on events, location, and tone, 1979–2012. Paper presented at the International Studies Association Annual Convention.
+
+Loughran, T., and McDonald, B. (2011). When is a liability not a liability? Textual analysis, dictionaries, and 10-Ks. *Journal of Finance*, 66(1), 35–65.
+
+Tetlock, P. C. (2007). Giving content to investor sentiment: The role of media in the stock market. *Journal of Finance*, 62(3), 1139–1168.
+
+Tetlock, P. C., Saar-Tsechansky, M., and Macskassy, S. (2008). More than words: Quantifying language to measure firms' fundamentals. *Journal of Finance*, 63(3), 1437–1467.
 
 ---
 
 ## Appendix A — Watchlists
 
 Full JSON lives at `simulations/backtest/events/<event-id>/watchlist.json`.
+
+Controls are listed for completeness; none appears in its corpus (Section 4.6).
 
 - **SVB-2023:** SIVB (critical), SBNY (high), FRC (high), WAL (normal), PACW (normal), MSFT (control)
 - **Wirecard-2020:** WDI (critical), DTE (control)
@@ -296,7 +331,7 @@ Every news observation also carries its own `source_url`.
 ## Appendix D — Reproducibility
 
 - **License:** Apache-2.0.
-- **Tests:** the full suite (116 tests at Revision 2) pins the backtest metrics, the Section 4.5 timing result, and the parity between live and backtest scoring.
+- **Tests:** the full suite (122 tests at Revision 2.1) pins the backtest metrics, the Section 4.5 timing result, the Section 4.6 control coverage, and the parity between live and backtest scoring.
 - **Determinism:** scoring weights are constants with no learned parameters, and reruns are bit-identical.
 - **Rebuild:** corpora can be regenerated from GDELT DOC 2.0 with `simulations/backtest/build_fixture.py`.
 

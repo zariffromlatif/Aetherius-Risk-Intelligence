@@ -33,3 +33,13 @@ def test_no_first_flag_precedes_the_market_reaction() -> None:
     assert len(rows) == 9
     assert sum(1 for r in rows if r["first_flag_reports_price_move"]) == 8
     assert sum(1 for r in rows if (r["flag_lead_over_reaction_hours"] or 0) > 0) == 0
+
+
+def test_controls_never_appear_in_the_frozen_corpora() -> None:
+    """Pins the paper's statement that the control test was not exercised.
+
+    If a fixture is rebuilt so a control name does appear, this fails: update
+    the paper's Section 4.6 and the README before changing this test.
+    """
+    for event in mrc.EVENTS:
+        assert set(mrc.control_coverage(event).values()) == {0}

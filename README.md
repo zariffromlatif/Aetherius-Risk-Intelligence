@@ -15,7 +15,7 @@
 
 Aetherius watches a list of companies. It reads new headlines and filings, decides conservatively whether each one really mentions a watched company, scores it with fixed, explainable weights, and puts only evidence-backed, adverse items in front of a human reviewer.
 
-**Headline result.** Replayed on 161 real archived headlines from three crises (SVB 2023, Wirecard 2020, FTX 2022), it flagged **9 of 9** affected names before their formal resolution and raised **0 flags on 3 unrelated control names**.
+**Headline result.** Replayed on 161 real archived headlines from three crises (SVB 2023, Wirecard 2020, FTX 2022), it flagged **9 of 9** affected names before their formal resolution. The backtest says nothing about false alarms: its control names never appear in the data ([§4.6](docs/working_paper/detection_timing_backtest_2026-07.md#46-the-control-test-was-not-exercised)).
 
 **The honest qualifier.** In **0 of 9** cases did the first flag come *before* the first headline reporting the stock already falling. The system is fast, auditable **triage** of a market reaction, not a predictor ([working paper §4.5](docs/working_paper/detection_timing_backtest_2026-07.md#45-timing-relative-to-the-market-reaction)).
 
@@ -38,12 +38,12 @@ Aetherius watches a list of companies. It reads new headlines and filings, decid
 
 ## Results
 
-| Event | Mechanism | Affected names flagged before resolution | Median lead to resolution | Controls flagged | First flag before market reaction |
-|---|---|---|---|---|---|
-| SVB-2023 | Regional-bank contagion | 5 / 5 | 2.34 days | 0 / 1 | 0 / 5 |
-| Wirecard-2020 | Accounting fraud | 1 / 1 | 6.60 days | 0 / 1 | 0 / 1 |
-| FTX-2022 | Crypto counterparty contagion | 3 / 3 | 7.12 days | 0 / 1 | 0 / 3 |
-| **All** | | **9 / 9** (95% CI 66–100%) | 2.48 days | **0 / 3** (FP rate 95% CI 0–71%) | **0 / 9** |
+| Event | Mechanism | Affected names flagged before resolution | Median lead to resolution | First flag before market reaction |
+|---|---|---|---|---|
+| SVB-2023 | Regional-bank contagion | 5 / 5 | 2.34 days | 0 / 5 |
+| Wirecard-2020 | Accounting fraud | 1 / 1 | 6.60 days | 0 / 1 |
+| FTX-2022 | Crypto counterparty contagion | 3 / 3 | 7.12 days | 0 / 3 |
+| **All** | | **9 / 9** (95% CI 66–100%) | 2.48 days | **0 / 9** |
 
 "Resolution" means the formal event: receivership, insolvency filing or Chapter 11. The "market reaction" is the first headline in the corpus reporting the stock already falling ([`market_reaction_check.py`](simulations/backtest/market_reaction_check.py)).
 
@@ -51,6 +51,7 @@ Aetherius watches a list of companies. It reads new headlines and filings, decid
 
 - **Small sample, chosen with hindsight.** There are three famous failures and nine affected names, and both the events and the adverse-term list were chosen knowing the outcomes. The confidence intervals above are wide.
 - **Triage, not anticipation.** Flags arrive together with the press reporting a sell-off.
+- **False alarms are untested.** Each event has a control company, but none appears in its headlines, so "no control was flagged" proves nothing. The live forward test measures false alarms instead.
 - **Known false positives.** Tickers that are English words match ordinary text ("coin prices fall" matches `COIN`). Adverse terms match as substrings ("fall" fires inside "shortfall").
 - **EDGAR adds provenance, not signal.** Filings are scored on metadata (form and date), never on the filing text.
 - **Whitelisted sources only.** Coverage is a fixed list of financial-news domains, which is thin for non-U.S. events.

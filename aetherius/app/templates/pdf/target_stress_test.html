@@ -236,7 +236,7 @@
     <div class="cover-footnote">
       Detection track record on 3 frozen historical crises &mdash;
       {{ track_record.aggregate.detected_total }} of {{ track_record.aggregate.affected_total }} affected names detected
-      at elevated / high severity, {{ track_record.aggregate.false_positives_total }} false positives on controls.
+      at elevated / high severity. False alarms were not tested (control names never appear in the corpora).
       Flags coincided with, and did not precede, the first press report of each stock falling.
       Full methodology in the working paper referenced on the final page.
       Aetherius is an information and risk-monitoring service, not investment advice.
@@ -409,7 +409,6 @@
           <th style="width: 15%;">Affected</th>
           <th style="width: 15%;">Detected</th>
           <th style="width: 20%;">Median lead to resolution</th>
-          <th style="width: 15%;">FP on control</th>
         </tr>
       </thead>
       <tbody>
@@ -419,7 +418,6 @@
           <td>{{ ev.affected }}</td>
           <td><strong>{{ ev.detected }}</strong></td>
           <td>{{ "%.2f"|format(ev.median_lead_days) }} days</td>
-          <td>{{ ev.false_positives_on_control }}</td>
         </tr>
         {% endfor %}
         <tr style="font-weight: 600; background: #fbf7ec;">
@@ -427,7 +425,6 @@
           <td>{{ track_record.aggregate.affected_total }}</td>
           <td>{{ track_record.aggregate.detected_total }}</td>
           <td>&mdash;</td>
-          <td>{{ track_record.aggregate.false_positives_total }}</td>
         </tr>
       </tbody>
     </table>

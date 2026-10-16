@@ -83,21 +83,21 @@ footer { margin: 64px 0 40px; padding-top: 20px; border-top: 1px solid var(--rul
   </header>
 
   <h2>The result, honestly</h2>
-  <p>Replayed on 161 real archived headlines from three crises, the screen flagged every affected company before its formal failure date and never flagged the unrelated control companies. But it never flagged a company before the press reported its stock already falling.</p>
+  <p>Replayed on 161 real archived headlines from three crises, the screen flagged every affected company before its formal failure date. But it never flagged a company before the press reported its stock already falling, and the backtest cannot say how often it raises false alarms.</p>
   <div class="stats">
     <div class="stat"><b>9 / 9</b><span>affected names flagged before resolution (95% CI 66–100%)</span></div>
-    <div class="stat"><b>0 / 3</b><span>control names flagged</span></div>
+    <div class="stat"><b>Untested</b><span>false alarms: the control companies never appear in the data</span></div>
     <div class="stat key"><b>0 / 9</b><span>first flags that came before the market reaction</span></div>
   </div>
   <p>So the system is <strong>fast, auditable triage</strong> of a market reaction already underway, not a predictor. The working paper (Section 4.5) shows the check and the tests that pin it.</p>
 
   <div class="table-scroll">
     <table>
-      <thead><tr><th>Event</th><th>Mechanism</th><th>Flagged before resolution</th><th>Median lead to resolution</th><th>Controls flagged</th><th>Before market reaction</th></tr></thead>
+      <thead><tr><th>Event</th><th>Mechanism</th><th>Flagged before resolution</th><th>Median lead to resolution</th><th>Before market reaction</th></tr></thead>
       <tbody>
-        <tr><td>SVB 2023</td><td>Regional-bank contagion</td><td class="num">5 / 5</td><td class="num">2.34 days</td><td class="num">0 / 1</td><td class="num">0 / 5</td></tr>
-        <tr><td>Wirecard 2020</td><td>Accounting fraud</td><td class="num">1 / 1</td><td class="num">6.60 days</td><td class="num">0 / 1</td><td class="num">0 / 1</td></tr>
-        <tr><td>FTX 2022</td><td>Crypto counterparty contagion</td><td class="num">3 / 3</td><td class="num">7.12 days</td><td class="num">0 / 1</td><td class="num">0 / 3</td></tr>
+        <tr><td>SVB 2023</td><td>Regional-bank contagion</td><td class="num">5 / 5</td><td class="num">2.34 days</td><td class="num">0 / 5</td></tr>
+        <tr><td>Wirecard 2020</td><td>Accounting fraud</td><td class="num">1 / 1</td><td class="num">6.60 days</td><td class="num">0 / 1</td></tr>
+        <tr><td>FTX 2022</td><td>Crypto counterparty contagion</td><td class="num">3 / 3</td><td class="num">7.12 days</td><td class="num">0 / 3</td></tr>
       </tbody>
     </table>
   </div>
@@ -114,6 +114,7 @@ footer { margin: 64px 0 40px; padding-top: 20px; border-top: 1px solid var(--rul
   <h2>Limitations</h2>
   <ul>
     <li><strong>Small sample chosen with hindsight.</strong> Three famous failures, nine names. The events and the adverse-word list were chosen knowing the outcomes.</li>
+    <li><strong>False alarms untested.</strong> Each event has a control company, but none appears in its headlines, so "no control was flagged" proves nothing. The live forward test measures this.</li>
     <li><strong>Known false positives.</strong> Tickers that are English words match ordinary text ("coin prices fall" matches Coinbase), and adverse terms match inside longer words.</li>
     <li><strong>Filings add provenance, not signal.</strong> SEC filings are scored on form type and date, not their text.</li>
   </ul>
