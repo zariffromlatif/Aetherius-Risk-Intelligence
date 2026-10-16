@@ -51,6 +51,6 @@ pytest aetherius/tests/test_market_reaction_check.py -v
 
 ## Posting as a preprint
 
-- **SSRN** (ssrn.com, free): good fit under Financial Economics → Risk Management. Upload a PDF made from the HTML (browser print → Save as PDF). No affiliation is required.
+- **SSRN** (ssrn.com, free): good fit under Financial Economics → Risk Management. Upload `detection_timing_backtest_2026-07.pdf` (build it with `python scripts/render_working_paper.py --pdf`).
 - **arXiv q-fin.RM / q-fin.CP**: a first-time submitter usually needs an endorsement from an existing arXiv author in that category. Ask a professor or a researcher whose work you cite.
 - In the abstract, keep the Revision 2 framing: triage at the market reaction, not anticipation.
