@@ -1,1 +1,7 @@
-{}
+{
+  "gdelt:https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-anthropic-valuation-tesla-roadster/|TSLA": {
+    "material": false,
+    "labeled_at": "2026-10-16",
+    "note": "Substring false positive: the adverse terms 'slide'/'slid' describe a broad tech-stock move; the Tesla mention is a product demo (flying Roadster)."
+  }
+}
