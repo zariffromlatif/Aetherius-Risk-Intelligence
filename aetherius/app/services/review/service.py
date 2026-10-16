@@ -1,8 +1,8 @@
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
 from app.models.entities import BriefingRuns, OperatorActions
+from app.utils.time import utcnow
 
 
 def set_review_action(
@@ -17,7 +17,7 @@ def set_review_action(
     run = db.query(BriefingRuns).filter(BriefingRuns.id == briefing_run_id).one()
     if action_type == "approve":
         run.status = "approved"
-        run.approved_at = datetime.utcnow()
+        run.approved_at = utcnow()
     elif action_type == "suppress":
         run.status = "suppressed"
     elif action_type == "resend":

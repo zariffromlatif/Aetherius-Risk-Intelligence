@@ -8,11 +8,11 @@ from pathlib import Path
 import pytest
 
 from app.services.reporting.target_stress_test import (
+    TRACK_RECORD_EVENTS,
     _adverse_severity,
     build_deck_data,
     deck_quality_gates,
     render_deck_html,
-    TRACK_RECORD_EVENTS,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -290,7 +290,7 @@ def test_missing_ticker_raises() -> None:
 
 @pytest.mark.skipif(not SVB_OBS_PATH.exists(), reason="SVB fixture not present")
 def test_render_deck_html_renders_all_required_sections() -> None:
-    observations = [json.loads(l) for l in SVB_OBS_PATH.read_text(encoding="utf-8").splitlines() if l.strip()]
+    observations = [json.loads(line) for line in SVB_OBS_PATH.read_text(encoding="utf-8").splitlines() if line.strip()]
     deck = build_deck_data(
         target={
             "ticker": "SIVB",
@@ -329,7 +329,7 @@ def test_render_deck_html_renders_all_required_sections() -> None:
 
 @pytest.mark.skipif(not SVB_OBS_PATH.exists(), reason="SVB fixture not present")
 def test_deck_html_passes_quality_gates_on_svb_fixture() -> None:
-    observations = [json.loads(l) for l in SVB_OBS_PATH.read_text(encoding="utf-8").splitlines() if l.strip()]
+    observations = [json.loads(line) for line in SVB_OBS_PATH.read_text(encoding="utf-8").splitlines() if line.strip()]
     deck = build_deck_data(
         target={
             "ticker": "SIVB",

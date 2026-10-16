@@ -18,6 +18,10 @@ celery_app.conf.task_routes = {
     "app.workers.tasks.delivery_*": {"queue": "delivery"},
 }
 celery_app.conf.beat_schedule = {
+    "watchlist-ingestion-job": {
+        "task": "app.workers.tasks.ingest_watchlist_sources",
+        "schedule": crontab(minute=5),
+    },
     "daily-brief-job": {
         "task": "app.workers.tasks.briefing_daily_sweep",
         "schedule": crontab(minute=0, hour=8),
@@ -25,6 +29,10 @@ celery_app.conf.beat_schedule = {
     "weekly-summary-job": {
         "task": "app.workers.tasks.briefing_weekly_sweep",
         "schedule": crontab(minute=0, hour=9, day_of_week="mon"),
+    },
+    "delivery-retry-job": {
+        "task": "app.workers.tasks.delivery_retry_failed",
+        "schedule": crontab(minute="*/5"),
     },
     "health-alerts-job": {
         "task": "app.workers.tasks.observability_health_alerts",

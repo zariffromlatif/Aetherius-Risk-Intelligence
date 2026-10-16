@@ -34,7 +34,12 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.services.entity_mapping.service import match_item
 from app.services.scoring.service import (
+    ADVERSE_TERMS,
+    PRIORITY_SCORE,
+    SEVERITY_RANK,
+    SHIP_SEVERITIES,
     ScoreInput,
+    adverse_severity,
     compute_brief_priority_score,
     compute_risk_score,
     compute_urgency_score,
@@ -42,24 +47,13 @@ from app.services.scoring.service import (
     severity_label,
 )
 
-# Ordering constants shared with simulations/backtest/run_backtest.py so the
-# deck's severity thresholds match the backtest's shippable-flag definition.
-_SEVERITY_RANK = {"low": 0, "moderate": 1, "elevated": 2, "high": 3}
-_SHIP_SEVERITIES = {"elevated", "high"}
-_PRIORITY_SCORE = {"low": 0.2, "normal": 0.5, "high": 0.8, "critical": 1.0}
-
-# Adverse-language taxonomy identical to run_backtest._ADVERSE_TERMS. Kept in
-# lockstep so the deck's shippable-flag definition matches the backtest's:
-# a benign product-news mention of the target must not become a "shippable"
-# deck signal on the strength of the name match alone.
-_ADVERSE_TERMS: tuple[str, ...] = (
-    "loss", "losses", "plunge", "plunged", "slid", "slide", "fell", "fall", "drop", "drawdown",
-    "downgrade", "downgraded", "withdraw", "withdrawals", "deposit run", "deposit outflow",
-    "outflow", "outflows", "liquidity", "squeeze", "contagion", "panic", "fail", "failure",
-    "receivership", "collapse", "capital raise", "unrealized loss", "funding pressure",
-    "funding costs", "selloff", "sell-off", "warned", "concerns", "stress", "distress",
-    "deposit pressure", "reprice", "writedown", "write-down", "default", "insolven",
-)
+# Shared with the live signal path and simulations/backtest/run_backtest.py so
+# the deck's shippable-flag definition matches the backtest's exactly.
+_SEVERITY_RANK = SEVERITY_RANK
+_SHIP_SEVERITIES = SHIP_SEVERITIES
+_PRIORITY_SCORE = PRIORITY_SCORE
+_ADVERSE_TERMS = ADVERSE_TERMS
+_adverse_severity = adverse_severity
 
 _DECK_VERSION = "1.0.0"
 
@@ -71,19 +65,6 @@ TRACK_RECORD_EVENTS: tuple[dict[str, Any], ...] = (
     {"event_id": "wirecard-2020", "event_name": "Wirecard accounting fraud (Jun 2020)", "affected": 1, "detected": 1, "median_lead_days": 6.60, "false_positives_on_control": 0},
     {"event_id": "ftx-2022", "event_name": "FTX crypto counterparty contagion (Nov 2022)", "affected": 3, "detected": 3, "median_lead_days": 7.12, "false_positives_on_control": 0},
 )
-
-
-def _adverse_severity(raw_text: str) -> float:
-    """Map raw text to an event-severity score in [0, 1].
-
-    Identical formula to the backtest harness so a deck and a backtest never
-    disagree about whether a given observation is 'shippable'.
-    """
-    low = (raw_text or "").lower()
-    hits = sum(1 for term in _ADVERSE_TERMS if term in low)
-    if hits == 0:
-        return 0.0
-    return min(1.0, 0.45 + 0.2 * hits)
 
 
 def _parse_dt(value: str | datetime) -> datetime:
@@ -407,8 +388,8 @@ def _default_invalidation_markers(target: dict[str, Any]) -> list[str]:
         f"Has {name} publicly refuted the specific factual claim(s) in the top evidence?",
         f"Do subsequent primary-source filings from {name} (8-K / press release / material change) "
         f"materially reduce the severity of the disclosed exposure?",
-        f"Have independent third parties (rating agencies, regulators, primary counterparties) "
-        f"issued statements that contradict the adverse narrative?",
+        "Have independent third parties (rating agencies, regulators, primary counterparties) "
+        "issued statements that contradict the adverse narrative?",
     ]
 
 

@@ -2,7 +2,14 @@ import re
 
 from sqlalchemy.orm import Session
 
-from app.models.entities import CompanyAliases, EntityRelationships, EvidenceLinks, ObservationEntities, SourceObservations, WatchlistItems
+from app.models.entities import (
+    CompanyAliases,
+    EntityRelationships,
+    EvidenceLinks,
+    ObservationEntities,
+    SourceObservations,
+    WatchlistItems,
+)
 
 # Common all-caps tokens that look like tickers but are not securities.
 # Prevents "CEO", "USD", "GDP", "FED", "AI" etc. from being extracted as companies.

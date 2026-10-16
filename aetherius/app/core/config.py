@@ -13,8 +13,6 @@ class Settings(BaseSettings):
     smtp_password: str | None = None
     smtp_from: str = "noreply@aetherius.local"
     smtp_use_tls: bool = False
-    openai_api_key: str | None = None
-    openai_model: str = "gpt-4o-mini"
     sec_user_agent: str = "Aetherius Research zarif@aetheriusresearch.tech"
     auth_token: str = "change-me"
     jwt_secret: str = "change-me-jwt"

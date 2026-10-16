@@ -5,8 +5,8 @@ detection-timing proof behaves correctly and time-safely across the three
 events that anchor the credibility artifact: SVB-2023, Wirecard-2020, FTX-2022.
 """
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pytest
 

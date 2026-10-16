@@ -4,7 +4,7 @@
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/)
-[![Tests: 76 passed](https://img.shields.io/badge/Tests-76%20passed-success.svg)](aetherius/tests/)
+[![Tests: 102 passed](https://img.shields.io/badge/Tests-102%20passed-success.svg)](aetherius/tests/)
 [![Backtest Recall: 9/9](https://img.shields.io/badge/Backtest%20Recall-100%25%20(9%2F9)-informational.svg)](docs/working_paper/detection_timing_backtest_2026-07.md)
 
 ---
@@ -76,8 +76,8 @@ Aetherius was validated by replaying 161 real historical news observations acros
 ### 1. Install Dependencies
 
 ```bash
-git clone https://github.com/zariffromlatif/Aetherius.git
-cd Aetherius
+git clone https://github.com/zariffromlatif/Aetherius-Risk-Intelligence.git
+cd Aetherius-Risk-Intelligence
 pip install -r requirements.txt
 ```
 
@@ -126,8 +126,10 @@ aetherius/
       entity_mapping/    # Regex and acronym disambiguation
       scoring/           # Deterministic risk & urgency formulas
       signals/           # Downside signal taxonomy
-      delivery/          # PDF rendering & regulatory quality gates
-  tests/                 # 76-test unit & integration test suite
+      delivery/          # PDF rendering, regulatory quality gates & retries
+      pipeline/          # Observation -> evidence -> signal flow shared by API & workers
+    workers/             # Celery beat: hourly EDGAR/GDELT ingestion, briefs, retries, retention
+  tests/                 # 102-test unit & integration test suite
 simulations/
   backtest/
     events/              # Frozen crisis fixtures (SVB, Wirecard, FTX)

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.models.entities import SourceObservations
+from app.utils.time import utcnow
 
 
 def make_content_hash(raw_text: str) -> str:
@@ -51,7 +52,7 @@ def ingest_observation(
         source_name=source_name,
         source_url=source_url,
         observed_at=observed_at,
-        ingested_at=datetime.utcnow(),
+        ingested_at=utcnow(),
         content_hash=content_hash,
         title=title,
         raw_text=raw_text,

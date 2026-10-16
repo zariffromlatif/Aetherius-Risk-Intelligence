@@ -29,3 +29,17 @@ class OperatorOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ClientAssignmentCreate(BaseModel):
+    operator_user_id: UUID
+    client_id: UUID
+
+
+class ClientAssignmentOut(BaseModel):
+    id: UUID
+    operator_user_id: UUID
+    client_id: UUID
+
+    class Config:
+        from_attributes = True

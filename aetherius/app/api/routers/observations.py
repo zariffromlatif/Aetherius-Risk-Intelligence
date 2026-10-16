@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, require_operator
 from app.models.entities import SourceObservations
-from app.services.entity_mapping.service import extract_entities, map_to_watchlist, persist_entities
 from app.services.ingestion.service import ingest_observation
+from app.services.pipeline.service import process_observation
 
 router = APIRouter(prefix="/observations", tags=["observations"], dependencies=[Depends(require_operator)])
 
@@ -38,10 +38,8 @@ def create_observation_endpoint(payload: ObservationCreate, db: Session = Depend
     )
     if observation is None:
         return {"deduped": True}
-    entities = extract_entities(payload.raw_text)
-    persist_entities(db, observation.id, entities)
-    links = map_to_watchlist(db, observation)
-    return {"deduped": False, "observation_id": str(observation.id), "evidence_links_created": len(links)}
+    result = process_observation(db, observation)
+    return {"deduped": False, "observation_id": str(observation.id), **result}
 
 
 @router.get("")
