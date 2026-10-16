@@ -2,7 +2,7 @@
 
 **A working paper. Revision 2.1, October 2026 (first version July 2026).**
 
-**Author:** Zarif Latif, independent researcher · zarif@aetheriusresearch.tech
+**Author:** Md. Zarif Latif, Undergraduate Student, BRAC University, Dhaka, Bangladesh · zarif@aetheriusresearch.tech
 
 **Keywords:** risk screening, event study, entity resolution, textual analysis, GDELT, SEC EDGAR, bank failures, backtesting
 

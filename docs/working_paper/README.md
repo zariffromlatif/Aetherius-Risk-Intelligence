@@ -1,7 +1,7 @@
 # Working Paper
 
 **Detection-Timing Backtest of a Deterministic Downside-Risk Screen Across Three Modern Financial Crises**
-Zarif Latif. Revision 2, October 2026 (first version July 2026).
+Md. Zarif Latif (BRAC University). Revision 2.1, October 2026 (first version July 2026).
 
 Revision 2's headline finding: the pipeline flagged all 9 affected names before their formal resolution dates, but **no first flag came before the first headline reporting the stock already falling** (Section 4.5). The paper presents the system as fast, auditable triage, not anticipation.
 
