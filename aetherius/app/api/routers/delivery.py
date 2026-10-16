@@ -1,10 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
-from fastapi import HTTPException
-
-from app.api.deps import get_db, require_operator
+from app.api.deps import get_db, operator_can_access_client, require_operator
 from app.models.entities import BriefingRuns, Deliveries
 from app.services.delivery.service import deliver_briefing, retry_failed_delivery
 
@@ -24,10 +22,10 @@ def deliver_briefing_endpoint(
     db: Session = Depends(get_db),
 ):
     run = db.query(BriefingRuns).filter(BriefingRuns.id == briefing_run_id).one()
-    # Sending a client's brief is an admin-only action. Non-admins cannot
-    # deliver across clients (no spoofable header).
-    if claims.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Delivery requires admin role")
+    # Sending a client's brief needs an admin, or an analyst assigned to that
+    # client. Viewers never send. Authority comes from the token, never a header.
+    if claims.get("role") not in {"admin", "analyst"} or not operator_can_access_client(db, claims, str(run.client_id)):
+        raise HTTPException(status_code=403, detail="Delivery requires admin or an analyst assigned to this client")
     return deliver_briefing(db, briefing_run_id=briefing_run_id, recipient=payload.recipient, channel=payload.channel)
 
 

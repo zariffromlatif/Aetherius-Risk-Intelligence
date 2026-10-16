@@ -37,88 +37,78 @@ a:hover { color: #14161e; }
 </style>
 </head>
 <body>
-<h1 id="detection-timing-backtest-of-a-systematic-downside-risk-screen-across-three-modern-financial-crises">Detection-Timing Backtest of a Systematic Downside-Risk Screen Across Three Modern Financial Crises</h1>
-<p><strong>A working paper. Aetherius Risk Intelligence. July 2026.</strong>
+<h1 id="detection-timing-backtest-of-a-deterministic-downside-risk-screen-across-three-modern-financial-crises">Detection-Timing Backtest of a Deterministic Downside-Risk Screen Across Three Modern Financial Crises</h1>
+<p><strong>A working paper. Revision 2, October 2026 (first version July 2026).</strong>
 <strong>Author:</strong> Zarif Latif · zarif@aetheriusresearch.tech</p>
+<blockquote>
+<p><strong>What changed in Revision 2.</strong> Revision 1 reported that the pipeline flagged all nine affected names "before the realized event date," with a median lead of about 2.5 days. That is true, but the realized event date was the <em>formal resolution</em> (receivership, insolvency filing, Chapter 11), not the market's reaction. Revision 2 adds a test of timing against the first headline reporting each stock already falling (Section 4.5). Measured that way, <strong>no first flag came before the market reaction.</strong> Revision 2 also adds confidence intervals, states the hindsight selection of events and watchlists, documents two known false-positive classes, removes commercial framing, and describes a pre-registered live forward test (Section 8). Every number in this revision is reproduced by pinned tests.</p>
+</blockquote>
 <hr />
 <h2 id="abstract">Abstract</h2>
-<p>We replay a systematic entity-mapping and severity-scoring pipeline against real primary-source news headlines from three widely-studied financial crises — the March 2023 U.S. regional-banking contagion, the June 2020 Wirecard AG accounting-fraud disclosure, and the November 2022 FTX collapse — and report per-name detection timing, mapping precision, and false-positive control behavior.</p>
-<p>Across the three frozen historical windows (161 real news observations sourced from GDELT DOC 2.0), the pipeline flagged <strong>9 of 9 affected names at "elevated" or "high" severity before the realized event date</strong> (100% recall), with a <strong>median lead time of 2.5 days</strong> and <strong>zero false positives on the three unrelated control names</strong> included in the watchlists.</p>
-<p>We describe the pipeline, the corpus construction, the ground-truth definition, and the honest limitations of the exercise. All code, data, and pinned tests are Apache-2.0 licensed and reproducible from the open repository.</p>
-<p><strong>This is early-detection and prioritization evidence on frozen historical windows. It is not a return forecast, a trading signal, or a claim of causal mechanism confidence.</strong></p>
+<p>We replay a deterministic entity-mapping and severity-scoring pipeline against real news headlines from three well-studied financial crises: the March 2023 U.S. regional-bank contagion, the June 2020 Wirecard AG accounting fraud and the November 2022 FTX collapse. For each affected name we report detection timing, mapping precision and behavior on unrelated control names.</p>
+<p>On 161 archived observations from GDELT DOC 2.0, the pipeline flagged <strong>all 9 affected names</strong> at "elevated" or "high" severity before each name's formal resolution date, with a median lead of 2.48 days. It raised <strong>no flags on the 3 control names</strong>. With these small samples, the 95% confidence interval for recall is 66–100%, and the control false-positive rate could be anywhere from 0% to 71%.</p>
+<p>The more important finding is about timing. In all 9 detections, the first flag arrived <strong>at the same time as, not before,</strong> the first headline reporting that the stock was already falling. In 8 of 9 it <em>was</em> that headline. The pipeline is therefore evidence of fast, auditable <strong>triage</strong> of a market reaction already underway. It is not evidence of anticipating the market. We describe the pipeline, the corpus and the ground truth, discuss the limitations, and describe a pre-registered live forward test started on 2026-10-16. All code and data are Apache-2.0 licensed and reproducible.</p>
+<p><strong>This is detection-timing evidence on frozen historical windows. It is not a return forecast, a trading signal, or a causal claim.</strong></p>
 <hr />
 <h2 id="1-motivation">1. Motivation</h2>
-<p>Concentrated public-equity books — held by search funds, small family offices, litigation-finance analysts, small credit shops, and single-name activists — carry outsized single-name risk. The generic surveillance products aimed at large institutions (Bloomberg terminals, Reorg/Octus, S&amp;P Capital IQ, and the major expert networks) are priced and configured for buyers with dozens of analysts. They are not shaped for the small book.</p>
-<p>The obvious alternative — "just read the news" — fails not because news is scarce, but because it is abundant. In the SVB-2023 window used in this paper, the GDELT DOC 2.0 index returned roughly 250 articles per ticker per week from wire-quality sources alone. A concentrated book of 5–10 names, monitored across two overlapping windows, easily produces several thousand candidate headlines per week. Human triage of that volume is expensive, uneven, and forgets weekends.</p>
-<p>The value of a <strong>systematic pipeline</strong> in this setting is not "AI insight." It is:</p>
+<p>Concentrated public-equity books, such as those of search funds, small family offices, litigation-finance analysts and small credit shops, carry large single-name risk. Professional surveillance products are priced and configured for large institutional teams.</p>
+<p>"Just read the news" fails because news is abundant, not scarce. A book of 5–10 names produces hundreds of candidate headlines a week, and human triage of that volume is uneven. A systematic screen helps in three narrow ways:</p>
 <ol>
-<li><strong>Idempotent entity resolution</strong> — every headline gets a conservative, word-boundary-safe answer to <em>"does this really mention one of our names, or a lookalike token?"</em></li>
-<li><strong>Deterministic severity scoring</strong> — every observation gets an event-severity score against a fixed adverse-language taxonomy, so no single headline is ever "missed" because the analyst was in a meeting.</li>
-<li><strong>A pinned false-positive discipline</strong> — the same pipeline that fires an "elevated" flag on adverse content on a watchlist name must stay quiet on adverse content on names outside the book, and quiet on benign content on names inside the book.</li>
+<li><strong>Conservative entity resolution.</strong> Each headline gets a word-boundary-safe answer to "does this really mention one of our names?"</li>
+<li><strong>Deterministic severity scoring.</strong> Each observation is scored against a fixed adverse-language list, so the same input always gets the same answer and every score can be audited.</li>
+<li><strong>False-positive discipline.</strong> Adverse content on names outside the book, and benign content on names inside it, should stay quiet.</li>
 </ol>
-<p>The question this paper asks is narrow and testable: <strong>given the information that actually existed at the time, on real primary-source headlines, would this pipeline have flagged the affected names of a modern crisis before the realized event date, without false-positiving unrelated controls?</strong></p>
-<p>We test it on three crises. The answer, on these three, is yes.</p>
+<p>The question here is narrow: <strong>on the headlines that actually existed at the time, when would this pipeline have flagged the affected names, both relative to their formal resolution and relative to the market's own reaction, and would it have stayed quiet on unrelated controls?</strong></p>
 <hr />
 <h2 id="2-pipeline-overview">2. Pipeline overview</h2>
-<p>The pipeline used for this paper is the production Aetherius stack, unmodified for the exercise. Every function below is Apache-2.0 licensed and lives at the referenced path.</p>
+<p>The pipeline is the production Aetherius code, unchanged for this exercise. Paths are relative to the repository root.</p>
 <h3 id="21-ingestion">2.1 Ingestion</h3>
-<p>Two adapters produce <code>SourceObservations</code> rows from primary sources:</p>
 <ul>
-<li>
-<p><strong><code>aetherius/app/services/ingestion/edgar_adapter.py</code></strong> — resolves a ticker to a 10-digit SEC CIK via the public <code>company_tickers.json</code> endpoint, pulls submissions via <code>data.sec.gov</code>, filters to a fixed set of downside-relevant forms (<code>8-K</code>, <code>10-Q</code>, <code>10-K</code>, <code>NT 10-Q</code>, <code>NT 10-K</code>, and their amendments), and writes one observation per filing.</p>
-</li>
-<li>
-<p><strong><code>aetherius/app/services/ingestion/gdelt_adapter.py</code></strong> — queries GDELT DOC 2.0 for a phrase-OR block of the target company name and its aliases, filters the response to a curated whitelist of primary financial-news domains, and writes one observation per article. Query length is capped by GDELT so the domain filter is applied client-side after fetch. Each observation is deduplicated by article URL.</p>
-</li>
+<li><strong><code>aetherius/app/services/ingestion/edgar_adapter.py</code></strong> maps a ticker to its SEC CIK, pulls submissions from <code>data.sec.gov</code>, keeps downside-relevant forms (<code>8-K</code>, <code>10-Q</code>, <code>10-K</code>, <code>NT 10-Q</code>, <code>NT 10-K</code> and amendments), and writes one observation per filing. The observation text contains the form type, date and accession number, <em>not</em> the filing body.</li>
+<li><strong><code>aetherius/app/services/ingestion/gdelt_adapter.py</code></strong> queries GDELT DOC 2.0 for the company name and aliases, keeps a whitelist of financial-news domains, and writes one observation per article (headline plus provenance line), deduplicated by URL.</li>
 </ul>
-<p>For this paper, all news observations come from the GDELT adapter. EDGAR is used only in production live-target flows; for a backtest, GDELT gives complete historical coverage of narrative flow (deposit-run reporting, ratings actions, executive-departure announcements) that filings alone cannot recreate.</p>
+<p>For the backtest, all news observations come from GDELT.</p>
 <h3 id="22-entity-mapping">2.2 Entity mapping</h3>
-<p><code>aetherius/app/services/entity_mapping/service.py</code> runs each observation's raw text through a <strong>conservative</strong> matcher:</p>
+<p><code>aetherius/app/services/entity_mapping/service.py</code> matches each observation's upper-cased text against each watchlist name:</p>
 <ul>
-<li>Word-boundary regex — <code>(?&lt;![A-Z0-9]){name}(?![A-Z0-9])</code> — so ticker <code>AI</code> cannot match inside <code>CHAIN</code> or <code>SAID</code>, and ticker <code>CAT</code> cannot match inside <code>CATALYST</code>.</li>
-<li>An acronym stoplist that drops common non-ticker tokens: role labels (<code>CEO</code>, <code>CFO</code>), macro terms (<code>GDP</code>, <code>CPI</code>, <code>FED</code>), currencies, regulators, and general tech acronyms (<code>AI</code>, <code>API</code>, <code>IPO</code>).</li>
-<li>A structured match against watchlist <code>aliases</code> and <code>relationships</code>, returning the relationship type and a relevance score.</li>
+<li>Word-boundary regex <code>(?&lt;![A-Z0-9]){name}(?![A-Z0-9])</code>, so ticker <code>AI</code> cannot match inside <code>CHAIN</code> or <code>SAID</code>.</li>
+<li>An acronym stoplist (<code>CEO</code>, <code>GDP</code>, <code>FED</code>, <code>USD</code>, <code>AI</code>, …) for ticker-shaped token extraction.</li>
+<li>Matches on ticker, company name, aliases, sector, and declared relationships, returning a relationship type and a relevance score. The precedence is direct, then sector, then relationship.</li>
 </ul>
-<p>The output is either a <code>(relationship_type, relevance)</code> tuple or <code>None</code>. This is the layer that keeps the SVB-2023 control <code>MSFT</code> (Microsoft) from being flagged on its Copilot-expansion news even though its ticker appears in the observation.</p>
+<p>Because matching is case-insensitive, a ticker that is also an English word matches ordinary text (Section 5.5).</p>
 <h3 id="23-severity-scoring">2.3 Severity scoring</h3>
-<p><code>aetherius/app/services/scoring/service.py</code> computes three deterministic scores per matched observation:</p>
+<p><code>aetherius/app/services/scoring/service.py</code> computes:</p>
 <ul>
-<li><strong>Risk score</strong> — a weighted combination of source confidence, freshness, directness, cross-confirmation, watchlist priority, event severity, and relationship strength.</li>
-<li><strong>Urgency score</strong> — a function of time sensitivity, event severity, novelty, and proximity to a monitored event window.</li>
-<li><strong>Brief priority score</strong> — a function of the above plus novelty and affected-names count.</li>
+<li>a <strong>risk score</strong>: a fixed weighted sum of source confidence, freshness, directness, cross-confirmation, watchlist priority, event severity and relationship strength;</li>
+<li>an <strong>urgency score</strong> and a <strong>brief-priority score</strong> derived from it.</li>
 </ul>
-<p><code>severity_label()</code> bins the risk score into <code>low</code>, <code>moderate</code>, <code>elevated</code>, or <code>high</code>. <code>confidence_label()</code> bins into <code>low</code>, <code>medium</code>, <code>high</code>. Every weight is a compile-time constant; no learned parameters.</p>
+<p><code>severity_label()</code> bins risk into <code>low</code>, <code>moderate</code>, <code>elevated</code> or <code>high</code>. Every weight is a constant, and there are no learned parameters.</p>
 <h3 id="24-adverse-language-gate">2.4 Adverse-language gate</h3>
-<p>The backtest harness (<code>simulations/backtest/run_backtest.py</code>) computes <code>_adverse_severity(raw_text)</code> against a fixed downside-language taxonomy: <code>loss</code>, <code>plunge</code>, <code>withdrawal</code>, <code>deposit run</code>, <code>receivership</code>, <code>collapse</code>, <code>funding pressure</code>, <code>distress</code>, <code>insolven*</code>, and roughly 30 others. A name match on benign content — no adverse tokens at all — is <strong>not</strong> shippable, however direct the entity match. This is the second gate keeping the MSFT control clean.</p>
-<p>An observation becomes a "shippable flag" only when: (a) the severity label is <code>elevated</code> or <code>high</code>, <strong>and</strong> (b) <code>event_severity_score &gt; 0</code> (at least one adverse token present).</p>
+<p><code>adverse_severity(raw_text)</code> (same module) counts matches against a fixed list of about 40 downside terms (<code>loss</code>, <code>plunge</code>, <code>withdrawals</code>, <code>deposit run</code>, <code>receivership</code>, <code>collapse</code>, <code>funding pressure</code>, <code>distress</code>, <code>insolven…</code>, …) and maps the count to an event-severity score. An observation is a <strong>shippable flag</strong> only when its severity label is <code>elevated</code> or <code>high</code> <strong>and</strong> at least one adverse term is present. This gate, not the matcher, keeps the MSFT control quiet: MSFT headlines match MSFT directly but contain no adverse terms. Since Revision 2, the live API, the backtest and the forward test all import this single implementation.</p>
 <h3 id="25-backtest-harness">2.5 Backtest harness</h3>
-<p><code>simulations/backtest/run_backtest.py</code> loads an event's <code>watchlist.json</code>, <code>ground_truth.json</code>, and <code>observations.jsonl</code>, replays every observation through the production entity-mapping and scoring code above, tracks the earliest shippable flag per watchlist name, and computes:</p>
+<p><code>simulations/backtest/run_backtest.py</code> replays each event's <code>observations.jsonl</code> in chronological order against its <code>watchlist.json</code> and <code>ground_truth.json</code>, records the first shippable flag per name, and computes:</p>
 <ul>
-<li><strong>Detection recall</strong> — fraction of <code>ground_truth.affected</code> names that produced a shippable flag before the realized event date, reaching the expected minimum severity.</li>
-<li><strong>Mapping precision</strong> — fraction of raw entity matches attributable to affected names or their declared relationships.</li>
-<li><strong>Median lead time</strong> — median hours between first shippable flag and realized event, across detected names.</li>
-<li><strong>False positives</strong> — <code>controls_should_not_flag</code> names that produced any shippable flag on the window.</li>
+<li><strong>Detection recall:</strong> affected names with a shippable flag before the realized event date.</li>
+<li><strong>Lead time:</strong> hours from first flag to the <em>realized event date</em> in <code>ground_truth.json</code>, which is the formal resolution date (Appendix B).</li>
+<li><strong>Mapping precision:</strong> raw matches attributable to affected names or their declared relationships.</li>
+<li><strong>False positives:</strong> control names that produced any shippable flag.</li>
 </ul>
-<p>The harness is fully offline once the fixture is on disk. Rerunning the same fixture at the same commit produces bit-identical metrics.</p>
+<p>Reruns of the same fixture at the same commit produce bit-identical metrics.</p>
 <hr />
 <h2 id="3-corpus-construction">3. Corpus construction</h2>
-<p>Every observation in every fixture in this paper came from GDELT DOC 2.0. No hand-authored summaries. Each article's provenance line is preserved in the observation's <code>provenance</code> field. Each article's real URL is preserved in <code>source_url</code> and can be independently retrieved from the publisher or from <code>web.archive.org</code>.</p>
-<p>The corpus is built by <code>simulations/backtest/build_fixture.py</code>, which:</p>
+<p>Every news observation came from GDELT DOC 2.0. There are no hand-written summaries, and every observation keeps its real <code>source_url</code>. <code>simulations/backtest/build_fixture.py</code>:</p>
 <ol>
-<li>Reads the event's watchlist and ground-truth files.</li>
-<li>For each watchlist item, queries GDELT DOC 2.0 for a phrase-OR block of <code>company_name</code> plus <code>aliases</code>, restricted to the event window (<code>window_start</code>, <code>window_end</code>), sorted <code>DateAsc</code>, up to <code>max_records</code> articles per target.</li>
-<li>Applies a client-side domain whitelist (Reuters, Bloomberg, WSJ, FT, MarketWatch, CNBC, Yahoo Finance, SEC.gov, FDIC.gov, Motley Fool, Investors Business Daily, TechCrunch, Business Insider, American Banker, and roughly ten others).</li>
-<li>Deduplicates by URL across targets.</li>
-<li>Prepends the pinned regulatory anchors from <code>ground_truth.primary_sources</code> (SEC filings, FDIC releases, insolvency filings) at their approximate observation timestamps.</li>
-<li>Writes the merged, chronologically-sorted <code>observations.jsonl</code> to the event directory.</li>
+<li>reads the event's watchlist and ground truth;</li>
+<li>queries GDELT per watchlist name over the event window;</li>
+<li>keeps only the domain whitelist (Reuters, Bloomberg, WSJ, FT, MarketWatch, CNBC, Yahoo Finance, Motley Fool, Investor's Business Daily, American Banker, regulators, and others);</li>
+<li>deduplicates by URL;</li>
+<li>prepends regulatory anchors (SEC filings, FDIC releases, insolvency filings) from <code>ground_truth.primary_sources</code>;</li>
+<li>writes the merged, chronological <code>observations.jsonl</code>.</li>
 </ol>
-<p>Per-target GDELT responses are cached under <code>_gdelt_cache/&lt;TICKER&gt;.json</code> so partial failures (rate limiting, network flap) resume without re-fetching what succeeded. The observations file is committed; the cache is git-ignored.</p>
-<h3 id="31-note-on-hand-curated-fixtures">3.1 Note on hand-curated fixtures</h3>
-<p>An earlier version of the SVB-2023 fixture was hand-authored: 10 rows of "curated public-record summaries" that the <code>provenance</code> field itself labeled as such. Any technically-literate reader of the public repository could — and did — dismiss the corpus as reverse-engineered. That hand-authored fixture has since been removed from the repository entirely; the pipeline is now tested only against real GDELT-scraped headlines. Every result in Section 4 uses that real corpus.</p>
+<p>An earlier SVB fixture of hand-written summaries was removed from the repository. All results use the GDELT corpus.</p>
 <hr />
 <h2 id="4-results">4. Results</h2>
 <h3 id="41-aggregate">4.1 Aggregate</h3>
-<p>Across all three events:</p>
 <table>
 <thead>
 <tr>
@@ -136,43 +126,41 @@ a:hover { color: #14161e; }
 <td>161</td>
 </tr>
 <tr>
-<td>Watchlist size (union across fixtures)</td>
+<td>Watchlist names (union)</td>
 <td>12 (9 affected + 3 controls)</td>
 </tr>
 <tr>
-<td>Names detected at expected severity</td>
-<td><strong>9 / 9 (100%)</strong></td>
+<td>Affected names flagged before resolution date</td>
+<td><strong>9 / 9</strong> (95% CI 66–100%)</td>
 </tr>
 <tr>
-<td>Median lead time across the 9 flagged names</td>
-<td><strong>2.48 days</strong></td>
+<td>Median lead to resolution date</td>
+<td>2.48 days (mean 3.58)</td>
 </tr>
 <tr>
-<td>Mean lead time across the 9 flagged names</td>
-<td>3.58 days</td>
-</tr>
-<tr>
-<td>Mapping precision (weighted across events)</td>
+<td>Mapping precision</td>
 <td>100%</td>
 </tr>
 <tr>
 <td>False positives on controls</td>
-<td><strong>0 / 3</strong></td>
+<td>0 / 3 (95% CI 0–71%)</td>
+</tr>
+<tr>
+<td>First flags that came <strong>before</strong> the first price-reaction headline</td>
+<td><strong>0 / 9</strong> (Section 4.5)</td>
 </tr>
 </tbody>
 </table>
-<p>The nine detected names came from three unrelated failure modes: bank runs (SVB, Signature, First Republic, Western Alliance, PacWest), accounting fraud (Wirecard), and crypto counterparty contagion (Silvergate, Coinbase, Signature Bank exposure to FTX). No mechanism-specific tuning was applied between events.</p>
+<p>Confidence intervals are exact (Clopper–Pearson) binomial intervals. The nine names span three failure modes: bank runs (SVB, Signature, First Republic, Western Alliance, PacWest), accounting fraud (Wirecard) and crypto counterparty contagion (Silvergate, Coinbase, Signature).</p>
 <h3 id="42-svb-2023">4.2 SVB-2023</h3>
-<p><strong>Event.</strong> SVB Financial Group (SIVB) disclosed on 2023-03-08 a $21B securities sale at a loss and a $2.25B capital raise. Deposit outflows overwhelmed the bank's liquidity; the FDIC took SVB into receivership on 2023-03-10. Contagion spread across the regional-bank cohort; Signature Bank was closed on 2023-03-12 and First Republic ultimately failed on May 1, 2023.</p>
-<p><strong>Watchlist.</strong> Five affected regional banks (SIVB, SBNY, FRC, WAL, PACW) plus MSFT as a non-bank control.</p>
-<p><strong>Corpus.</strong> 98 observations from GDELT DOC 2.0 filtered to the primary-financial-news whitelist for the window 2023-03-06 to 2023-03-12, plus the SEC 8-K and FDIC receivership anchors.</p>
-<p><strong>Results.</strong></p>
+<p><strong>Event.</strong> On 2023-03-08 SVB Financial Group (SIVB) disclosed a loss on a $21B securities sale and a planned $2.25B capital raise. Deposit outflows followed, and the FDIC took SVB into receivership on 2023-03-10. Signature Bank was closed on 2023-03-12.</p>
+<p><strong>Watchlist.</strong> SIVB, SBNY, FRC, WAL and PACW, with MSFT as a non-bank control. <strong>Corpus:</strong> 98 observations, 2023-03-06 to 2023-03-12.</p>
 <table>
 <thead>
 <tr>
 <th>Ticker</th>
 <th>First flag</th>
-<th>Realized event</th>
+<th>Resolution date</th>
 <th>Lead (d)</th>
 <th>Peak severity</th>
 <th>First-flag evidence</th>
@@ -185,7 +173,7 @@ a:hover { color: #14161e; }
 <td>2023-03-10</td>
 <td>0.46</td>
 <td>high</td>
-<td>marketwatch.com — <em>SVB Financial stock plummets toward biggest one-day selloff in 23 years</em></td>
+<td>marketwatch.com: <em>SVB Financial stock plummets toward biggest one-day selloff in 23 years</em></td>
 </tr>
 <tr>
 <td>SBNY</td>
@@ -193,7 +181,7 @@ a:hover { color: #14161e; }
 <td>2023-03-12</td>
 <td>2.48</td>
 <td>high</td>
-<td>marketwatch.com — <em>Signature Bank stock drops sharply after Silvergate announces winddown</em></td>
+<td>marketwatch.com: <em>Signature Bank stock drops sharply after Silvergate announces winddown</em></td>
 </tr>
 <tr>
 <td>FRC</td>
@@ -201,7 +189,7 @@ a:hover { color: #14161e; }
 <td>2023-03-13</td>
 <td>3.26</td>
 <td>high</td>
-<td>fool.com — <em>Why Shares of First Republic Bank Are Falling Today</em></td>
+<td>fool.com: <em>Why Shares of First Republic Bank Are Falling Today</em></td>
 </tr>
 <tr>
 <td>WAL</td>
@@ -209,7 +197,7 @@ a:hover { color: #14161e; }
 <td>2023-03-13</td>
 <td>2.34</td>
 <td>elevated</td>
-<td>investors.com — <em>SVB Trading Halted, Company Seeks Buyer, Financial Stocks Shudder</em></td>
+<td>investors.com: <em>SVB Trading Halted, Company Seeks Buyer, Financial Stocks Shudder</em></td>
 </tr>
 <tr>
 <td>PACW</td>
@@ -217,24 +205,20 @@ a:hover { color: #14161e; }
 <td>2023-03-13</td>
 <td>2.34</td>
 <td>high</td>
-<td>investors.com — <em>SVB Trading Halted, Company Seeks Buyer, Financial Stocks Shudder</em></td>
+<td>investors.com: <em>SVB Trading Halted, Company Seeks Buyer, Financial Stocks Shudder</em></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Recall 5/5. Median lead 2.34 days. Mapping precision 100%. False positives on MSFT: 0.</strong></p>
-<p>MSFT was mentioned in 12 observations across the window, entirely in benign product-news context (Copilot expansion, Windows updates). The word-boundary matcher and adverse-language gate both fired as designed: MSFT observations reached name-match confidence but zero adverse-severity, and were therefore never shippable.</p>
+<p>MSFT appeared in benign product coverage only, scored zero adverse severity, and never shipped.</p>
 <h3 id="43-wirecard-2020">4.3 Wirecard-2020</h3>
-<p><strong>Event.</strong> On 2020-06-18 Wirecard AG (WDI) disclosed that €1.9B in cash reported on its balance sheet "likely does not exist." The CEO Markus Braun resigned the next day. Wirecard filed for insolvency at the Munich District Court on 2020-06-25, wiping out equity holders.</p>
-<p>This event is a useful stress test because the mechanism is idiosyncratic fraud, not sector-wide stress. A pipeline that overfits to bank-run vocabulary would either miss it or false-positive every payments peer.</p>
-<p><strong>Watchlist.</strong> Wirecard (WDI) plus Deutsche Telekom (DTE) as an unrelated DAX control. Payments-sector peers (Adyen, PayPal) are intentionally excluded from this fixture — for an idiosyncratic fraud event, declared peer relationships would (correctly) fire <code>peer_readthrough</code> flags on the peers, which are valid analyst-facing signals but not "false positives" in the pipeline sense. The clean two-name fixture avoids that ambiguity; the peer-readthrough behavior is documented and demonstrable but requires a separate human-reviewer-dismissal rubric to score cleanly, which we defer to a future paper.</p>
-<p><strong>Corpus.</strong> 14 observations from GDELT DOC 2.0 for the window 2020-06-15 to 2020-06-30 (Wirecard's European coverage skews to non-U.S. domains that fall outside our primary-source whitelist; the whitelist is deliberately not expanded post-hoc to inflate the corpus).</p>
-<p><strong>Results.</strong></p>
+<p><strong>Event.</strong> On 2020-06-18 Wirecard AG (WDI) disclosed that €1.9B of reported cash likely did not exist. It filed for insolvency on 2020-06-25.</p>
+<p><strong>Watchlist.</strong> WDI, with Deutsche Telekom (DTE) as a control. Payments peers were left out to avoid scoring <code>peer_readthrough</code> flags. <strong>Corpus:</strong> 14 observations, 2020-06-15 to 2020-06-30. The corpus is thin because European coverage falls mostly outside the whitelist, which was not widened after the fact.</p>
 <table>
 <thead>
 <tr>
 <th>Ticker</th>
 <th>First flag</th>
-<th>Realized event</th>
+<th>Resolution date</th>
 <th>Lead (d)</th>
 <th>Peak severity</th>
 <th>First-flag evidence</th>
@@ -247,24 +231,19 @@ a:hover { color: #14161e; }
 <td>2020-06-25</td>
 <td>6.60</td>
 <td>high</td>
-<td>marketwatch.com — <em>Wirecard shares plunge as Ernst &amp; Young says no evidence for 1.9 billion euros of cash on balance sheet</em></td>
+<td>marketwatch.com: <em>Wirecard shares plunge as Ernst &amp; Young says no evidence for 1.9 billion euros of cash on balance sheet</em></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Recall 1/1. Lead time 6.60 days. Mapping precision 100%. False positives on DTE: 0.</strong></p>
-<p>DTE appeared in the corpus but only in mundane telecom coverage. Adverse-language gate stayed at 0. No shippable flag.</p>
 <h3 id="44-ftx-2022">4.4 FTX-2022</h3>
-<p><strong>Event.</strong> On 2022-11-02 CoinDesk published a leaked balance sheet showing that Alameda Research's assets were largely FTT tokens issued by its sister exchange FTX. Binance CEO Changpeng Zhao announced intent to liquidate Binance's FTT holdings on 2022-11-06, triggering a bank run on FTX. Withdrawals were halted on 2022-11-08. FTX filed Chapter 11 on 2022-11-11.</p>
-<p>FTX itself was privately held; the interesting test case is contagion into the public-equity crypto ecosystem. Silvergate Capital (SI) — a crypto-focused bank with direct deposit relationships to FTX — was the most exposed and ultimately wound down in early 2023.</p>
-<p><strong>Watchlist.</strong> Silvergate (SI), Coinbase (COIN), Signature Bank (SBNY, via its crypto-linked Signet platform), and Microsoft (MSFT) as a non-crypto control.</p>
-<p><strong>Corpus.</strong> 49 observations from GDELT DOC 2.0 for the window 2022-11-02 to 2022-11-14.</p>
-<p><strong>Results.</strong></p>
+<p><strong>Event.</strong> On 2022-11-02 CoinDesk reported that Alameda Research's assets were largely FTX-issued FTT tokens. FTX halted withdrawals on 2022-11-08 and filed Chapter 11 on 2022-11-11. The test is contagion into listed crypto-exposed equities.</p>
+<p><strong>Watchlist.</strong> SI, COIN and SBNY, with MSFT as a control. <strong>Corpus:</strong> 49 observations, 2022-11-02 to 2022-11-14.</p>
 <table>
 <thead>
 <tr>
 <th>Ticker</th>
 <th>First flag</th>
-<th>Realized event</th>
+<th>Resolution date</th>
 <th>Lead (d)</th>
 <th>Peak severity</th>
 <th>First-flag evidence</th>
@@ -277,7 +256,7 @@ a:hover { color: #14161e; }
 <td>2022-11-11</td>
 <td>7.12</td>
 <td>high</td>
-<td>fool.com — <em>Why Coinbase, Silvergate Capital, and Marathon Digital Holdings...</em></td>
+<td>fool.com: <em>Why Coinbase, Silvergate Capital, and Marathon Digital Holdings Are Falling This Week</em></td>
 </tr>
 <tr>
 <td>COIN</td>
@@ -285,7 +264,7 @@ a:hover { color: #14161e; }
 <td>2022-11-11</td>
 <td>7.12</td>
 <td>high</td>
-<td>fool.com — <em>Why Coinbase, Silvergate Capital, and Marathon Digital Holdings...</em></td>
+<td>fool.com: <em>(same article)</em></td>
 </tr>
 <tr>
 <td>SBNY</td>
@@ -293,77 +272,175 @@ a:hover { color: #14161e; }
 <td>2022-11-11</td>
 <td>0.54</td>
 <td>elevated</td>
-<td>marketwatch.com — <em>Robinhood, Coinbase Distance Themselves from FTX After Crypto...</em></td>
+<td>marketwatch.com: <em>Robinhood, Coinbase Distance Themselves from FTX After Crypto Plunge</em></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Recall 3/3. Median lead 7.12 days. Mapping precision 100%. False positives on MSFT: 0.</strong></p>
-<p>The two 7.12-day leads on SI and COIN both trace to a single Motley Fool article on 2022-11-03 that discussed all three names in an adverse-signal frame. This is a legitimate concentration risk in the evidence — had that one article not been in the corpus, both leads would compress materially. The article is public, indexed by GDELT, and would have been surfaced by any 2022-11-03 sweep of the whitelisted domains.</p>
+<p>Both 7.12-day leads come from a single article. Without it, both would shrink substantially.</p>
+<h3 id="45-timing-relative-to-the-market-reaction">4.5 Timing relative to the market reaction</h3>
+<p>The lead times above are measured to the formal resolution date. An investor cares about a different clock: when the <em>price</em> moved. The evidence titles in Sections 4.2–4.4 already hint at the answer, since almost every one reports a stock that is falling.</p>
+<p><code>simulations/backtest/market_reaction_check.py</code> makes this precise. For each detected name, it finds the earliest observation in the corpus that maps to that name and reports a price decline already underway, using a fixed pattern that pairs a price noun ("shares", "stock") with a falling verb ("plunge", "drops", "falling", …). It then compares that headline's time with the first flag.</p>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Ticker</th>
+<th>First flag</th>
+<th>First price-reaction headline</th>
+<th>Flag lead over reaction</th>
+<th>Flag headline itself reports a fall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SVB-2023</td>
+<td>FRC</td>
+<td>2023-03-09 17:45Z</td>
+<td>2023-03-09 17:45Z</td>
+<td>0.0 h</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>SVB-2023</td>
+<td>PACW</td>
+<td>2023-03-10 15:45Z</td>
+<td>2023-03-10 15:45Z</td>
+<td>0.0 h</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>SVB-2023</td>
+<td>SBNY</td>
+<td>2023-03-09 12:30Z</td>
+<td>2023-03-09 12:30Z</td>
+<td>0.0 h</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>SVB-2023</td>
+<td>SIVB</td>
+<td>2023-03-09 13:00Z</td>
+<td>2023-03-09 13:00Z</td>
+<td>0.0 h</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>SVB-2023</td>
+<td>WAL</td>
+<td>2023-03-10 15:45Z</td>
+<td>2023-03-10 15:45Z</td>
+<td>0.0 h</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Wirecard-2020</td>
+<td>WDI</td>
+<td>2020-06-18 09:30Z</td>
+<td>2020-06-18 09:30Z</td>
+<td>0.0 h</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>FTX-2022</td>
+<td>COIN</td>
+<td>2022-11-03 21:00Z</td>
+<td>2022-11-03 21:00Z</td>
+<td>0.0 h</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>FTX-2022</td>
+<td>SI</td>
+<td>2022-11-03 21:00Z</td>
+<td>2022-11-03 21:00Z</td>
+<td>0.0 h</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>FTX-2022</td>
+<td>SBNY</td>
+<td>2022-11-10 11:00Z</td>
+<td>none in corpus</td>
+<td>n/a</td>
+<td>no (headline reports a <em>crypto</em> price fall)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>No first flag came before the market reaction.</strong> The pipeline flagged each name at the moment the press reported its shares falling. This is expected given how it works: adverse-language scoring of headlines fires most strongly on headlines <em>about</em> a sell-off.</p>
+<p>That is still useful for a small team. Out of hundreds of headlines, the names that need attention today were surfaced within the same news cycle, with an auditable reason. But it is <strong>triage, not anticipation</strong>, and Revision 1's framing of "lead time" overstated what the evidence supports.</p>
 <hr />
-<h2 id="5-honest-limitations">5. Honest limitations</h2>
-<h3 id="51-what-this-exercise-does-and-does-not-measure">5.1 What this exercise does and does not measure</h3>
-<p><strong>It measures:</strong> whether, given a curated whitelist of primary-financial-news domains and a real archived corpus, the pipeline flags known-affected watchlist names at elevated or high severity before the realized event date, without false-positiving unrelated controls.</p>
+<h2 id="5-limitations">5. Limitations</h2>
+<h3 id="51-what-this-measures-and-what-it-does-not">5.1 What this measures and what it does not</h3>
+<p><strong>It measures</strong> whether, on a whitelisted, archived corpus, the pipeline flags known-affected names at elevated or high severity before the formal resolution date, and how that timing compares with the press reporting the price reaction.</p>
 <p><strong>It does not measure:</strong></p>
 <ul>
-<li><strong>Return</strong> — no PnL, no shorting, no position sizing.</li>
-<li><strong>Causality</strong> — the pipeline uses no causal model. It measures narrative and severity correlation on the wire.</li>
-<li><strong>Coverage on unfiltered feeds</strong> — the whitelist is deliberate. On the full GDELT firehose (aggregators, translation mirrors, press-release wires) false-positive rates would be higher and require additional filtering.</li>
-<li><strong>Performance on non-Anglophone events</strong> — the Wirecard-2020 corpus is thin (14 observations) precisely because European coverage skews to domains outside our whitelist. The recall metric is unchanged (1/1 on the affected name), but the pipeline's sensitivity on non-U.S. events is not fully characterized.</li>
-<li><strong>Robustness to adversarial input</strong> — a company issuing intentionally misleading press releases in the window could produce a false-negative in adverse-language scoring. There is no defense against fraud in the corpus itself.</li>
+<li><strong>Returns.</strong> There is no PnL, position sizing or execution.</li>
+<li><strong>Anticipation of price moves.</strong> See Section 4.5.</li>
+<li><strong>Causality.</strong> No causal model is used.</li>
+<li><strong>Unfiltered feeds.</strong> False-positive rates on the full GDELT firehose would be higher.</li>
+<li><strong>Non-Anglophone events.</strong> The Wirecard corpus has only 14 observations.</li>
+<li><strong>Adversarial input.</strong> Misleading press releases are not defended against.</li>
 </ul>
 <h3 id="52-sample-size">5.2 Sample size</h3>
-<p>Three events is a small sample. The 100% recall and 0 false positives across the three are the numbers to report, but the honest confidence interval around them is wide. A fourth event that failed the pipeline would drop aggregate recall to 9/10 or 8/9 and would deserve equal reporting. The intent is to extend the paper to at least 6–8 events over the next quarter, spanning:</p>
+<p>Three events, nine affected names and three controls make a very small sample. 9/9 recall is consistent with a true recall as low as 66%, and 0/3 control false positives is consistent with a true control false-positive rate as high as 71% (exact binomial 95% intervals). One added event that failed would deserve equal reporting.</p>
+<h3 id="53-hindsight-selection">5.3 Hindsight selection</h3>
+<p>The three events, the affected names, and the decision to include each name were all chosen <strong>after the outcomes were known</strong>, from among the best-known failures of recent years. The adverse-term list was also written by people who knew how these crises unfolded, and its vocabulary ("deposit run", "receivership", "unrealized loss", "capital raise") is close to bank-run reporting. A screen tested only on famous failures cannot tell us how often it fires on companies that turned out fine. The forward test in Section 8 is designed to address this.</p>
+<h3 id="54-lookahead">5.4 Lookahead</h3>
+<p>The harness sorts observations by GDELT <code>seendate</code> and only counts flags strictly before the resolution date (pinned by <code>test_time_safety_lead_time_never_negative</code>). Regulatory anchors are inserted at a small offset from the resolution date. Removing them leaves SVB recall (5/5) and median lead (2.34 days) unchanged.</p>
+<h3 id="55-known-false-positive-classes">5.5 Known false-positive classes</h3>
 <ul>
-<li><strong>Additional bank stress</strong> (First Republic 2023-05, Credit Suisse 2023-03).</li>
-<li><strong>Additional accounting/fraud events</strong> (Adani Group 2023-01 short-seller report, Luckin Coffee 2020-04).</li>
-<li><strong>Additional counterparty contagion</strong> (Archegos 2021-03, Terra/Luna 2022-05).</li>
-<li><strong>Non-Anglophone events</strong> (as coverage-domain support broadens).</li>
+<li><strong>Ticker words.</strong> Matching is case-insensitive, so a ticker that is an English word matches ordinary text. For example, "Bitcoin <em>coin</em> prices fall" matches Coinbase (<code>COIN</code>) directly. The live forward test keeps <code>COIN</code> and <code>META</code> on its watchlist to measure this.</li>
+<li><strong>Substring adverse terms.</strong> Terms match as substrings, so "fall" also fires inside "shortfall" or "fallout", and "slide" fires on a presentation slide.</li>
+<li><strong>EDGAR metadata.</strong> Filing observations hold the form type and date, not the filing text, so they never contain adverse terms and cannot ship on their own. EDGAR currently adds provenance, not signal.</li>
 </ul>
-<h3 id="53-lookahead">5.3 Lookahead</h3>
-<p>Every observation carries a <code>seendate</code> from GDELT, and the harness sorts observations chronologically before replay. The <code>run_backtest.py</code> harness measures <code>lead_time_hours = realized_event_date − first_flag_at</code>; any observation whose GDELT <code>seendate</code> is on or after the realized event date can only produce a non-positive lead time and is not counted in the median. A pinned test (<code>test_time_safety_lead_time_never_negative</code>) enforces this.</p>
-<p>The one exception is the pinned regulatory anchors in <code>ground_truth.primary_sources</code>, which are inserted at a computed offset from the realized event date. That offset is a small negative shift (regulatory docs typically post the day of or the trading day before the market event). If a future reader disputes the offset, the harness computes recall and lead time from GDELT news observations alone — removing the regulatory anchors from the fixture does not change the SVB recall (still 5/5) or the median lead (2.34 → 2.34).</p>
-<h3 id="54-selection-risk-in-the-domain-whitelist">5.4 Selection risk in the domain whitelist</h3>
-<p>The primary-financial-news whitelist was fixed before the fixtures were built. It was <strong>not</strong> tuned after seeing per-event results. That said, a reader could reasonably object that the whitelist itself is a selection: adding aggregator wires would raise both recall (more coverage) and false positives (more noise). We chose "high-confidence primary sources" over "coverage" — the same choice a professional analyst makes when deciding which desk to trust.</p>
+<h3 id="56-domain-whitelist">5.6 Domain whitelist</h3>
+<p>The whitelist was fixed before the fixtures were built and was not tuned on results. It is still a selection: adding aggregators would raise both coverage and noise.</p>
 <hr />
 <h2 id="6-reproduction">6. Reproduction</h2>
-<p>The full stack is Apache-2.0 licensed and reproducible from the repository at <code>https://github.com/zariffromlatif/Aetherius</code> (branch <code>main</code>).</p>
-<pre><code class="language-bash"># 1. Install dependencies (pinned in requirements.txt).
-pip install -r requirements.txt
+<p>Repository: <code>https://github.com/zariffromlatif/Aetherius-Risk-Intelligence</code> (Apache-2.0).</p>
+<pre><code class="language-bash">pip install -r requirements.txt
 
-# 2. Run the three-event backtest suite.
-pytest aetherius/tests/test_backtest_harness.py -v
+# Full test suite, including the pinned backtest and market-timing results.
+pytest aetherius/tests -v
 
-# 3. Reproduce a single event's metrics.
+# Per-event backtest metrics.
 python simulations/backtest/run_backtest.py --event svb-2023
 python simulations/backtest/run_backtest.py --event wirecard-2020
 python simulations/backtest/run_backtest.py --event ftx-2022
 
-# 4. (Optional) Rebuild an event's observations.jsonl from GDELT DOC 2.0.
-#    Requires internet; per-target responses are cached under _gdelt_cache/.
+# Section 4.5 table.
+PYTHONPATH=aetherius python simulations/backtest/market_reaction_check.py --markdown
+
+# (Optional, needs internet) Rebuild a corpus from GDELT DOC 2.0.
 python simulations/backtest/build_fixture.py --event svb-2023
 </code></pre>
-<p>All watchlists, ground-truth files, observation corpora, and pinned tests are committed. Every source URL in every observation is real and independently verifiable.</p>
 <hr />
 <h2 id="7-what-this-paper-is-not">7. What this paper is not</h2>
-<p>This paper is a detection-timing artifact. It is not:</p>
 <ul>
-<li><strong>A pitch</strong> — pricing, engagement scope, and commercial terms are elsewhere.</li>
-<li><strong>A trading strategy</strong> — return generation requires a whole layer of position sizing, execution, and risk management that this pipeline does not do.</li>
-<li><strong>A causal claim</strong> — the fact that the pipeline flagged five regional banks in the SVB window before the FDIC receivership date does not mean the pipeline "predicted" the receivership. Deposit-run narratives on a wire two days before a receivership are a real signal, but they are downstream of the underlying balance-sheet stress, not upstream.</li>
-<li><strong>A guarantee</strong> — the same pipeline could easily miss a future event that unfolds in a mode we have not yet seen.</li>
+<li><strong>A trading strategy.</strong> Section 4.5 shows the flags coincide with the market reaction.</li>
+<li><strong>A causal claim.</strong> Deposit-run headlines two days before a receivership are downstream of balance-sheet stress, not upstream of it.</li>
+<li><strong>A guarantee.</strong> The pipeline could miss a future event that unfolds in a way not seen here.</li>
 </ul>
-<p>The honest use of the artifact is: it demonstrates that a small, deterministic, human-supervised pipeline can be constructed today, on real primary-source news, that would have raised elevated / high flags on nine names across three different modern crises before the realized events, without firing on three unrelated controls. That is a lower-bar and more testable claim than "AI predicts crashes." It is the claim on which Aetherius' engagements rest.</p>
+<p>What it does show is narrower: a small, deterministic, auditable pipeline running on real headlines would have put nine affected names in front of a reviewer within the same news cycle as their market reaction, ahead of formal resolution, without firing on three unrelated controls.</p>
 <hr />
-<h2 id="appendix-a-watchlist-definitions">Appendix A — Watchlist definitions</h2>
-<p>Full watchlist JSON for each event is at <code>simulations/backtest/events/&lt;event-id&gt;/watchlist.json</code>. Summarized here:</p>
-<p><strong>SVB-2023 (<code>simulations/backtest/events/svb-2023/</code>)</strong>
-- SIVB (critical), SBNY (high), FRC (high), WAL (normal), PACW (normal), MSFT (control)</p>
-<p><strong>Wirecard-2020 (<code>simulations/backtest/events/wirecard-2020/</code>)</strong>
-- WDI (critical), DTE (control)</p>
-<p><strong>FTX-2022 (<code>simulations/backtest/events/ftx-2022/</code>)</strong>
-- SI (critical), COIN (high), SBNY (normal), MSFT (control)</p>
-<h2 id="appendix-b-ground-truth-definitions">Appendix B — Ground-truth definitions</h2>
-<p>Realized event dates and expected minimum severities per affected name are pinned in each event's <code>ground_truth.json</code>. Summary:</p>
+<h2 id="8-future-work">8. Future work</h2>
+<ol>
+<li><strong>Pre-registered live forward test (running since 2026-10-16).</strong> <code>simulations/forward_test/</code> fixes a 20-name, all-<code>normal</code>-priority watchlist chosen for coverage rather than expected distress, and commits its hash. A daily GitHub Action scores live GDELT news and SEC filings with the <em>frozen</em> backtest scorer and appends timestamped rows to the <code>forward-test-log</code> branch. The planned report covers alerts per name per week, human-labeled precision, and the stock's 5-session return before and after each flag.</li>
+<li><strong>Rule-based event selection.</strong> Choose events by a rule fixed in advance (for example, every listed U.S. bank failure on the FDIC list in a period, or every S&amp;P 500 constituent with a ≥50% drawdown in a year) instead of by fame.</li>
+<li><strong>Price-anchored evaluation.</strong> Measure timing against the first ≥10% close-to-close decline, using price data, not headlines.</li>
+<li><strong>Matcher fixes.</strong> Use case-sensitive ticker matching or require a cashtag for ticker-word symbols, and add whole-word adverse terms. These would be evaluated as a <em>new</em> model version, with the frozen version kept for comparison.</li>
+<li><strong>Filing text.</strong> Score 8-K item text (for example, Item 2.06 impairments or Item 4.02 non-reliance) instead of metadata.</li>
+</ol>
+<hr />
+<h2 id="appendix-a-watchlists">Appendix A — Watchlists</h2>
+<p>Full JSON lives at <code>simulations/backtest/events/&lt;event-id&gt;/watchlist.json</code>.</p>
+<ul>
+<li><strong>SVB-2023:</strong> SIVB (critical), SBNY (high), FRC (high), WAL (normal), PACW (normal), MSFT (control)</li>
+<li><strong>Wirecard-2020:</strong> WDI (critical), DTE (control)</li>
+<li><strong>FTX-2022:</strong> SI (critical), COIN (high), SBNY (normal), MSFT (control)</li>
+</ul>
+<h2 id="appendix-b-ground-truth">Appendix B — Ground truth</h2>
+<p>Each "realized event date" is the formal resolution date, not the first price reaction.</p>
 <table>
 <thead>
 <tr>
@@ -430,29 +507,19 @@ python simulations/backtest/build_fixture.py --event svb-2023
 </tr>
 </tbody>
 </table>
-<h2 id="appendix-c-primary-source-references">Appendix C — Primary source references</h2>
-<p><strong>SVB-2023.</strong>
-- SEC EDGAR, SVB Financial Group (CIK 0000719739), Form 8-K filed 2023-03-08.
-- FDIC press release pr23016 (2023-03-10): closure of Silicon Valley Bank and appointment of FDIC as receiver.
-- Federal Reserve joint statement (2023-03-12) on regional-bank facilities.</p>
-<p><strong>Wirecard-2020.</strong>
-- Wirecard AG ad-hoc release, 2020-06-18: €1.9B cash "likely does not exist."
-- BaFin statements, 2020-06-18 to 2020-06-25.
-- Wirecard AG insolvency filing at Munich District Court, 2020-06-25.</p>
-<p><strong>FTX-2022.</strong>
-- CoinDesk Alameda balance-sheet leak, 2022-11-02.
-- Changpeng Zhao (Binance) tweet announcing FTT sale, 2022-11-06.
-- FTX Chapter 11 bankruptcy filing (D. Del.), 2022-11-11.
-- Silvergate Capital 8-K filings, November 2022.</p>
-<p>Every news observation in every fixture also carries its own primary-source URL in the <code>source_url</code> field.</p>
-<h2 id="appendix-d-reproducibility-manifest">Appendix D — Reproducibility manifest</h2>
+<h2 id="appendix-c-primary-sources">Appendix C — Primary sources</h2>
+<p><strong>SVB-2023.</strong> SEC EDGAR, SVB Financial Group (CIK 0000719739), Form 8-K filed 2023-03-08. FDIC press release pr23016 (2023-03-10). Federal Reserve joint statement (2023-03-12).</p>
+<p><strong>Wirecard-2020.</strong> Wirecard AG ad-hoc release (2020-06-18). BaFin statements (2020-06-18 to 2020-06-25). Insolvency filing, Munich District Court (2020-06-25).</p>
+<p><strong>FTX-2022.</strong> CoinDesk Alameda balance-sheet report (2022-11-02). Binance FTT announcement (2022-11-06). FTX Chapter 11 filing, D. Del. (2022-11-11). Silvergate Capital 8-K filings (November 2022).</p>
+<p>Every news observation also carries its own <code>source_url</code>.</p>
+<h2 id="appendix-d-reproducibility">Appendix D — Reproducibility</h2>
 <ul>
-<li><strong>Repository:</strong> open-sourced under Apache-2.0.</li>
-<li><strong>Test coverage:</strong> 44 unit / integration tests pass on the reference commit, of which 12 pin backtest behavior.</li>
-<li><strong>Determinism:</strong> all scoring weights are compile-time constants. No learned parameters. Rerunning the same fixture at the same commit produces bit-identical metrics.</li>
-<li><strong>Rebuild-from-source:</strong> the observations corpus can be regenerated end-to-end from GDELT DOC 2.0 via <code>simulations/backtest/build_fixture.py</code>. Cached responses under <code>_gdelt_cache/</code> make partial reruns free.</li>
+<li><strong>License:</strong> Apache-2.0.</li>
+<li><strong>Tests:</strong> the full suite (116 tests at Revision 2) pins the backtest metrics, the Section 4.5 timing result, and the parity between live and backtest scoring.</li>
+<li><strong>Determinism:</strong> scoring weights are constants with no learned parameters, and reruns are bit-identical.</li>
+<li><strong>Rebuild:</strong> corpora can be regenerated from GDELT DOC 2.0 with <code>simulations/backtest/build_fixture.py</code>.</li>
 </ul>
 <hr />
-<p><em>Aetherius Risk Intelligence provides research and risk-monitoring services. Analysis is not investment advice and is not a recommendation to buy, sell, or hold any security. Nothing herein is a forecast or a guarantee of any outcome.</em></p>
+<p><em>Research software. Not investment advice, and not a recommendation to buy, sell or hold any security.</em></p>
 </body>
 </html>

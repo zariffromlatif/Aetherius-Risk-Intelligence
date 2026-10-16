@@ -2,7 +2,18 @@ import uuid
 
 from fastapi import FastAPI, Request
 
-from app.api.routers import auth, clients, delivery, observations, operator_console, ops, reporting, review, signals, watchlists
+from app.api.routers import (
+    auth,
+    clients,
+    delivery,
+    observations,
+    operator_console,
+    ops,
+    reporting,
+    review,
+    signals,
+    watchlists,
+)
 from app.core.config import settings
 from app.utils.logging import configure_logging, correlation_id_var
 

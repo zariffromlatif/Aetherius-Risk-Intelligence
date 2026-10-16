@@ -1,0 +1,57 @@
+name: Forward test
+
+# Runs the frozen model against live GDELT news + SEC EDGAR filings once a day
+# and commits the append-only logs to the `forward-test-log` branch. The commit
+# history on that branch is the timestamped, tamper-evident track record.
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: forward-test
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out log branch
+        run: |
+          git config --global user.name "aetherius-forward-test"
+          git config --global user.email "aetherius-forward-test@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin forward-test-log >/dev/null; then
+            git clone --depth 1 --branch forward-test-log \
+              "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" _log
+          else
+            mkdir _log && cd _log && git init -b forward-test-log
+            git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install httpx sqlalchemy pydantic pydantic-settings python-dotenv jinja2
+
+      - name: Run forward test
+        env:
+          SEC_USER_AGENT: ${{ vars.SEC_USER_AGENT || 'Aetherius Forward Test zarif@aetheriusresearch.tech' }}
+        run: |
+          python simulations/forward_test/run_forward_test.py --log-dir _log/log --user-agent "$SEC_USER_AGENT"
+          cp simulations/forward_test/watchlist.json _log/watchlist.json
+          python simulations/forward_test/summarize.py --log-dir _log/log --prices || \
+            python simulations/forward_test/summarize.py --log-dir _log/log
+
+      - name: Commit logs
+        run: |
+          cd _log
+          git add -A
+          git commit -m "forward test: $(date -u +%Y-%m-%dT%H:%MZ)" || exit 0
+          git push origin forward-test-log

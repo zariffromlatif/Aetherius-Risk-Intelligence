@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
-import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 APP_ROOT = REPO_ROOT / "aetherius"
@@ -13,7 +14,12 @@ if str(APP_ROOT) not in sys.path:
 
 from app.services.entity_mapping.service import extract_entities, match_item  # noqa: E402
 from app.services.scoring.service import (  # noqa: E402
+    ADVERSE_TERMS,
+    PRIORITY_SCORE,
+    SEVERITY_RANK,
+    SHIP_SEVERITIES,
     ScoreInput,
+    adverse_severity,
     compute_brief_priority_score,
     compute_risk_score,
     compute_urgency_score,
@@ -24,37 +30,10 @@ from app.services.scoring.service import (  # noqa: E402
 EVENTS_DIR = Path(__file__).resolve().parent / "events"
 VALIDATION_DIR = REPO_ROOT / "simulations" / "validation"
 
-_SEVERITY_RANK = {"low": 0, "moderate": 1, "elevated": 2, "high": 3}
-_SHIP_SEVERITIES = {"elevated", "high"}
-PRIORITY_SCORE = {"low": 0.2, "normal": 0.5, "high": 0.8, "critical": 1.0}
-
-# Adverse / risk language. A direct mention of a watchlist name is only a
-# shippable risk flag when the observation actually carries downside content;
-# otherwise a benign product/news mention of the name would false-positive
-# (e.g. "Microsoft expands Copilot"). Lower-cased substring match.
-_ADVERSE_TERMS = (
-    "loss", "losses", "plunge", "plunged", "slid", "slide", "fell", "fall", "drop", "drawdown",
-    "downgrade", "downgraded", "withdraw", "withdrawals", "deposit run", "deposit outflow",
-    "outflow", "outflows", "liquidity", "squeeze", "contagion", "panic", "fail", "failure",
-    "receivership", "collapse", "capital raise", "unrealized loss", "funding pressure",
-    "funding costs", "selloff", "sell-off", "warned", "concerns", "stress", "distress",
-    "deposit pressure", "reprice", "writedown", "write-down", "default", "insolven",
-)
-
-
-def _adverse_severity(raw_text: str) -> float:
-    """Map observation content to an event-severity score in [0, 1].
-
-    Benign text (no risk language) scores ~0 so it cannot reach a shippable
-    severity on the strength of a name match alone; text with multiple risk
-    cues scores high.
-    """
-    low = raw_text.lower()
-    hits = sum(1 for term in _ADVERSE_TERMS if term in low)
-    if hits == 0:
-        return 0.0
-    return min(1.0, 0.45 + 0.2 * hits)
-
+_SEVERITY_RANK = SEVERITY_RANK
+_SHIP_SEVERITIES = SHIP_SEVERITIES
+_ADVERSE_TERMS = ADVERSE_TERMS
+_adverse_severity = adverse_severity
 
 
 def _parse_dt(value: str) -> datetime:
@@ -257,6 +236,38 @@ def _render_summary(m: dict) -> str:
     return "\n".join(L)
 
 
+def _git_head() -> str:
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], cwd=REPO_ROOT, capture_output=True, text=True, check=True
+        )
+        return out.stdout.strip() or "unspecified"
+    except (OSError, subprocess.CalledProcessError):
+        return "unspecified"
+
+
+def _resolve_commit(metrics: dict, metrics_path: Path, explicit: str | None) -> str:
+    """Pick the commit label to record for this run.
+
+    An explicit ``--commit`` always wins. Otherwise, if the committed metrics are
+    identical apart from the label, keep the existing label so a plain
+    reproduction run leaves the tree clean. If the numbers moved, record the
+    current git HEAD so the new results are attributable.
+    """
+    if explicit:
+        return explicit
+    if metrics_path.exists():
+        try:
+            previous = json.loads(metrics_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            previous = None
+        if previous and {k: v for k, v in previous.items() if k != "commit"} == {
+            k: v for k, v in metrics.items() if k != "commit"
+        }:
+            return previous.get("commit") or _git_head()
+    return _git_head()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run an Aetherius historical detection-timing backtest.")
     parser.add_argument("--event", default="svb-2023")
@@ -266,6 +277,7 @@ def main() -> None:
     metrics = run_backtest(args.event, commit=args.commit)
     out_dir = VALIDATION_DIR / args.event
     out_dir.mkdir(parents=True, exist_ok=True)
+    metrics["commit"] = _resolve_commit(metrics, out_dir / "metrics.json", args.commit)
     (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
     (out_dir / "summary.md").write_text(_render_summary(metrics), encoding="utf-8")
 

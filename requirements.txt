@@ -17,4 +17,5 @@ pytest
 PyJWT
 passlib[bcrypt]
 python-multipart
-ruff
+ruff==0.16.8
+markdown

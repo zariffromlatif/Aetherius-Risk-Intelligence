@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" fill="#141A24"/>
+  <!-- Brass corner ticks — echo the data card motif on the site -->
+  <path d="M4 4 L4 12 M4 4 L12 4" stroke="#B8893A" stroke-width="1.5" fill="none"/>
+  <path d="M60 60 L60 52 M60 60 L52 60" stroke="#B8893A" stroke-width="1.5" fill="none"/>
+  <!-- Roman "Æ" ligature. Playfair-style, brass on ink navy. -->
+  <text x="32" y="44"
+        font-family="Georgia, 'Playfair Display', serif"
+        font-size="34"
+        font-weight="700"
+        fill="#B8893A"
+        text-anchor="middle">Æ</text>
+</svg>

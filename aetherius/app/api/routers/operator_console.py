@@ -6,7 +6,15 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, require_operator
-from app.models.entities import BriefingRuns, Clients, Deliveries, RiskSignals, SourceObservations, WatchlistItems, Watchlists
+from app.models.entities import (
+    BriefingRuns,
+    Clients,
+    Deliveries,
+    RiskSignals,
+    SourceObservations,
+    WatchlistItems,
+    Watchlists,
+)
 
 template_dir = Path(__file__).resolve().parents[2] / "templates" / "console"
 templates = Jinja2Templates(directory=str(template_dir))

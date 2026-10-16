@@ -1,0 +1,26 @@
+{
+  "registered_at": "2026-10-16",
+  "note": "Pre-registered before any forward-test data was collected. Do not edit: changing this list resets the track record. Twenty large, liquid US names across sectors, all at 'normal' priority, chosen for coverage rather than expected distress. Tickers that are also English words (COIN, META) are kept on purpose to measure that false-positive class.",
+  "items": [
+    {"ticker": "AAPL", "company_name": "Apple", "aliases": ["Apple Inc"], "priority_level": "normal"},
+    {"ticker": "MSFT", "company_name": "Microsoft", "aliases": [], "priority_level": "normal"},
+    {"ticker": "NVDA", "company_name": "Nvidia", "aliases": [], "priority_level": "normal"},
+    {"ticker": "AMZN", "company_name": "Amazon", "aliases": ["Amazon.com"], "priority_level": "normal"},
+    {"ticker": "GOOGL", "company_name": "Alphabet", "aliases": ["Google"], "priority_level": "normal"},
+    {"ticker": "META", "company_name": "Meta Platforms", "aliases": ["Facebook"], "priority_level": "normal"},
+    {"ticker": "TSLA", "company_name": "Tesla", "aliases": [], "priority_level": "normal"},
+    {"ticker": "JPM", "company_name": "JPMorgan Chase", "aliases": ["JPMorgan"], "priority_level": "normal"},
+    {"ticker": "BAC", "company_name": "Bank of America", "aliases": [], "priority_level": "normal"},
+    {"ticker": "WFC", "company_name": "Wells Fargo", "aliases": [], "priority_level": "normal"},
+    {"ticker": "GS", "company_name": "Goldman Sachs", "aliases": [], "priority_level": "normal"},
+    {"ticker": "ZION", "company_name": "Zions Bancorporation", "aliases": ["Zions"], "priority_level": "normal"},
+    {"ticker": "BA", "company_name": "Boeing", "aliases": [], "priority_level": "normal"},
+    {"ticker": "INTC", "company_name": "Intel", "aliases": [], "priority_level": "normal"},
+    {"ticker": "PFE", "company_name": "Pfizer", "aliases": [], "priority_level": "normal"},
+    {"ticker": "XOM", "company_name": "Exxon Mobil", "aliases": ["ExxonMobil", "Exxon"], "priority_level": "normal"},
+    {"ticker": "DIS", "company_name": "Walt Disney", "aliases": ["Disney"], "priority_level": "normal"},
+    {"ticker": "NKE", "company_name": "Nike", "aliases": [], "priority_level": "normal"},
+    {"ticker": "GM", "company_name": "General Motors", "aliases": [], "priority_level": "normal"},
+    {"ticker": "COIN", "company_name": "Coinbase", "aliases": [], "priority_level": "normal"}
+  ]
+}

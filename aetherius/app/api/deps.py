@@ -1,9 +1,12 @@
+import uuid
+
 import jwt
 from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.session import get_db
+from app.models.entities import OperatorClientAssignments
 
 
 def db_dep() -> Session:
@@ -30,17 +33,39 @@ def require_admin(claims: dict = Depends(require_operator)) -> dict:
     return claims
 
 
-def require_client_scope(client_id: str, claims: dict = Depends(require_operator)) -> dict:
-    # Authority is derived from the authenticated operator, never from a
-    # client-supplied header. Admins may act across all clients.
-    #
-    # NOTE: This is correct for a single trusted operator team. When outside
-    # analysts are onboarded, replace the role check below with a lookup
-    # against an operator_client_assignments table (operator_id, client_id)
-    # and verify membership here.
+def operator_can_access_client(db: Session, claims: dict, client_id: str) -> bool:
+    """Admins may act on every client; others only on clients assigned to them."""
     if claims.get("role") == "admin":
+        return True
+    operator_id = claims.get("sub")
+    if not operator_id:
+        return False
+    try:
+        operator_uuid = uuid.UUID(str(operator_id))
+        client_uuid = uuid.UUID(str(client_id))
+    except ValueError:
+        return False
+    return (
+        db.query(OperatorClientAssignments)
+        .filter(
+            OperatorClientAssignments.operator_user_id == operator_uuid,
+            OperatorClientAssignments.client_id == client_uuid,
+        )
+        .first()
+        is not None
+    )
+
+
+def require_client_scope(
+    client_id: str,
+    claims: dict = Depends(require_operator),
+    db: Session = Depends(get_db),
+) -> dict:
+    # Authority is derived from the authenticated operator and the
+    # operator_client_assignments table, never from a client-supplied header.
+    if operator_can_access_client(db, claims, client_id):
         return claims
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
-        detail="Cross-client action requires admin role",
+        detail="Operator is not assigned to this client",
     )

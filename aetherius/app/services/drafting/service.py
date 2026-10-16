@@ -1,12 +1,12 @@
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
 from app.models.entities import BriefingEvidenceRefs, BriefingItems, BriefingRuns, RiskSignals
+from app.utils.time import utcnow
 
 
 def create_briefing_run(db: Session, client_id: str, run_type: str, status: str = "draft") -> BriefingRuns:
-    run = BriefingRuns(client_id=client_id, run_type=run_type, status=status, generated_at=datetime.utcnow())
+    run = BriefingRuns(client_id=client_id, run_type=run_type, status=status, generated_at=utcnow())
     db.add(run)
     db.commit()
     db.refresh(run)
@@ -90,3 +90,25 @@ def draft_urgent_alerts(db: Session, client_id: str, threshold: float = 0.75) ->
         db.commit()
         runs.append(run)
     return runs
+
+
+def draft_weekly_summary(db: Session, client_id: str) -> BriefingRuns:
+    """Draft a weekly summary run for operator review from reporting counts."""
+    from app.services.reporting.service import build_weekly_summary
+
+    summary = build_weekly_summary(db, client_id)
+    run = create_briefing_run(db, client_id, "weekly_summary", "pending_review")
+    db.add(
+        BriefingItems(
+            briefing_run_id=run.id,
+            section_type="executive_summary",
+            display_order=0,
+            title="Weekly Summary",
+            body=(
+                f"Daily briefs sent: {summary['sent_daily_briefs']}. "
+                f"Open downside signals: {summary['open_signals']}."
+            ),
+        )
+    )
+    db.commit()
+    return run

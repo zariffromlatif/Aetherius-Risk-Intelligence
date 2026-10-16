@@ -1,7 +1,9 @@
 # Working Paper
 
-**Detection-Timing Backtest of a Systematic Downside-Risk Screen Across Three Modern Financial Crises**
-Aetherius Risk Intelligence — July 2026
+**Detection-Timing Backtest of a Deterministic Downside-Risk Screen Across Three Modern Financial Crises**
+Zarif Latif. Revision 2, October 2026 (first version July 2026).
+
+Revision 2's headline finding: the pipeline flagged all 9 affected names before their formal resolution dates, but **no first flag came before the first headline reporting the stock already falling** (Section 4.5). The paper presents the system as fast, auditable triage, not anticipation.
 
 ## Files
 
@@ -38,12 +40,15 @@ python simulations/backtest/build_fixture.py --event svb-2023
 
 Per-target GDELT responses are cached under `simulations/backtest/events/<event-id>/_gdelt_cache/` (git-ignored) so partial failures resume without re-fetching.
 
-## Intended distribution channels
+## Reproduce the market-timing result (Section 4.5)
 
-- **Substack post** — paste the Markdown; embed the results tables inline.
-- **GitHub Pages / repo README** — the Markdown renders natively.
-- **PDF attachment** — open the HTML in a browser, print to PDF.
-- **arXiv q-fin preprint** — the paper is written in the working-paper style expected by q-fin.CP / q-fin.RM.
-- **Cold outbound email** — link to the GitHub-rendered Markdown, attach the HTML.
+```bash
+PYTHONPATH=aetherius python simulations/backtest/market_reaction_check.py --markdown
+pytest aetherius/tests/test_market_reaction_check.py -v
+```
 
-The paper is the credibility asset that unlocks the outbound sales channels.
+## Posting as a preprint
+
+- **SSRN** (ssrn.com, free): good fit under Financial Economics → Risk Management. Upload a PDF made from the HTML (browser print → Save as PDF). No affiliation is required.
+- **arXiv q-fin.RM / q-fin.CP**: a first-time submitter usually needs an endorsement from an existing arXiv author in that category. Ask a professor or a researcher whose work you cite.
+- In the abstract, keep the Revision 2 framing: triage at the market reaction, not anticipation.

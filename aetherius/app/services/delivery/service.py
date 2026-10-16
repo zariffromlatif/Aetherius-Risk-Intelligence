@@ -1,6 +1,6 @@
 import re
 import smtplib
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.entities import BriefingEvidenceRefs, BriefingItems, BriefingRuns, Deliveries
+from app.utils.time import utcnow
 
 
 def _env() -> Environment:
@@ -54,6 +55,10 @@ BANNED_LANGUAGE = (
     "will collapse",
     "definitely",
 )
+
+
+DUPLICATE_SUPPRESSED = "Duplicate alert suppressed unless materially changed."
+RETRY_BASE_DELAY = timedelta(minutes=5)
 
 
 def _normalize(text: str) -> str:
@@ -110,13 +115,74 @@ def send_email(recipient: str, subject: str, html_body: str) -> str:
         if settings.smtp_username and settings.smtp_password:
             server.login(settings.smtp_username, settings.smtp_password)
         server.sendmail(settings.smtp_from, [recipient], msg.as_string())
-    return f"smtp-{datetime.utcnow().timestamp()}"
+    return f"smtp-{datetime.now(timezone.utc).timestamp()}"
+
+
+def _fail(db: Session, delivery: Deliveries, message: str) -> Deliveries:
+    delivery.delivery_status = "failed"
+    delivery.error_message = message
+    delivery.attempt_count = delivery.attempt_count + 1
+    delivery.last_attempt_at = utcnow()
+    db.commit()
+    db.refresh(delivery)
+    return delivery
+
+
+def _attempt_delivery(db: Session, delivery: Deliveries) -> Deliveries:
+    """Run every quality gate and, if all pass, send. Used by first send and retries."""
+    run = db.query(BriefingRuns).filter(BriefingRuns.id == delivery.briefing_run_id).one()
+    items = (
+        db.query(BriefingItems)
+        .filter(BriefingItems.briefing_run_id == delivery.briefing_run_id)
+        .order_by(BriefingItems.display_order)
+        .all()
+    )
+    ok, issues = quality_gates(items, delivery.recipient)
+    if not ok:
+        return _fail(db, delivery, "; ".join(issues))
+    duplicate_recent = (
+        db.query(Deliveries)
+        .filter(
+            Deliveries.briefing_run_id == delivery.briefing_run_id,
+            Deliveries.recipient == delivery.recipient,
+            Deliveries.delivery_status == "sent",
+            Deliveries.id != delivery.id,
+        )
+        .first()
+    )
+    if duplicate_recent:
+        return _fail(db, delivery, DUPLICATE_SUPPRESSED)
+
+    high_items = [i for i in items if i.severity_level in {"elevated", "high"}]
+    for hi in high_items:
+        has_ref = db.query(BriefingEvidenceRefs).filter(BriefingEvidenceRefs.briefing_item_id == hi.id).count() > 0
+        if not has_ref:
+            return _fail(db, delivery, f"Missing evidence for high severity item: {hi.title}")
+
+    try:
+        html = render_email(run, items)
+        # Compliance gate: never send a client-facing brief without the disclaimer.
+        if not disclaimer_present(html):
+            return _fail(db, delivery, "Required disclaimer missing from rendered brief.")
+        # Render PDF to enforce render-success quality gate.
+        _ = render_pdf_bytes(run, items)
+        message_id = send_email(delivery.recipient, f"Aetherius Brief - {run.run_type}", html)
+    except Exception as exc:  # noqa: BLE001 - any render/SMTP failure is recorded on the delivery row
+        return _fail(db, delivery, str(exc))
+    delivery.delivery_status = "sent"
+    delivery.provider_message_id = message_id
+    delivery.error_message = None
+    delivery.attempt_count = delivery.attempt_count + 1
+    delivery.last_attempt_at = utcnow()
+    run.status = "sent"
+    run.sent_at = utcnow()
+    db.commit()
+    db.refresh(delivery)
+    return delivery
 
 
 def deliver_briefing(db: Session, briefing_run_id: str, recipient: str, channel: str = "email") -> Deliveries:
-    run = db.query(BriefingRuns).filter(BriefingRuns.id == briefing_run_id).one()
-    items = db.query(BriefingItems).filter(BriefingItems.briefing_run_id == briefing_run_id).order_by(BriefingItems.display_order).all()
-    ok, issues = quality_gates(items, recipient)
+    db.query(BriefingRuns).filter(BriefingRuns.id == briefing_run_id).one()
     delivery = Deliveries(
         briefing_run_id=briefing_run_id,
         channel=channel,
@@ -126,77 +192,41 @@ def deliver_briefing(db: Session, briefing_run_id: str, recipient: str, channel:
     db.add(delivery)
     db.commit()
     db.refresh(delivery)
-    if not ok:
-        delivery.delivery_status = "failed"
-        delivery.error_message = "; ".join(issues)
-        delivery.attempt_count = delivery.attempt_count + 1
-        delivery.last_attempt_at = datetime.utcnow()
-        db.commit()
-        return delivery
-    duplicate_recent = (
-        db.query(Deliveries)
-        .filter(
-            Deliveries.briefing_run_id == briefing_run_id,
-            Deliveries.recipient == recipient,
-            Deliveries.delivery_status == "sent",
-        )
-        .first()
-    )
-    if duplicate_recent:
-        delivery.delivery_status = "failed"
-        delivery.error_message = "Duplicate alert suppressed unless materially changed."
-        delivery.attempt_count = delivery.attempt_count + 1
-        delivery.last_attempt_at = datetime.utcnow()
-        db.commit()
-        return delivery
-
-    high_items = [i for i in items if i.severity_level in {"elevated", "high"}]
-    for hi in high_items:
-        has_ref = db.query(BriefingEvidenceRefs).filter(BriefingEvidenceRefs.briefing_item_id == hi.id).count() > 0
-        if not has_ref:
-            delivery.delivery_status = "failed"
-            delivery.error_message = f"Missing evidence for high severity item: {hi.title}"
-            delivery.attempt_count = delivery.attempt_count + 1
-            delivery.last_attempt_at = datetime.utcnow()
-            db.commit()
-            return delivery
-
-    try:
-        html = render_email(run, items)
-        # Compliance gate: never send a client-facing brief without the disclaimer.
-        if not disclaimer_present(html):
-            delivery.delivery_status = "failed"
-            delivery.error_message = "Required disclaimer missing from rendered brief."
-            delivery.attempt_count = delivery.attempt_count + 1
-            delivery.last_attempt_at = datetime.utcnow()
-            db.commit()
-            db.refresh(delivery)
-            return delivery
-        # Render PDF to enforce render-success quality gate.
-        _ = render_pdf_bytes(run, items)
-        message_id = send_email(recipient, f"Aetherius Brief - {run.run_type}", html)
-        delivery.delivery_status = "sent"
-        delivery.provider_message_id = message_id
-        delivery.attempt_count = delivery.attempt_count + 1
-        delivery.last_attempt_at = datetime.utcnow()
-        run.status = "sent"
-        run.sent_at = datetime.utcnow()
-    except Exception as exc:
-        delivery.delivery_status = "failed"
-        delivery.error_message = str(exc)
-        delivery.attempt_count = delivery.attempt_count + 1
-        delivery.last_attempt_at = datetime.utcnow()
-    db.commit()
-    db.refresh(delivery)
-    return delivery
+    return _attempt_delivery(db, delivery)
 
 
-def retry_failed_delivery(db: Session, delivery_id: str, max_attempts: int = 3) -> Deliveries:
+def retry_backoff(attempt_count: int) -> timedelta:
+    """Exponential backoff before the next retry: 5, 10, 20, ... minutes."""
+    return RETRY_BASE_DELAY * (2 ** max(attempt_count - 1, 0))
+
+
+def retry_failed_delivery(
+    db: Session, delivery_id: str, max_attempts: int = 3, respect_backoff: bool = False
+) -> Deliveries:
+    """Re-attempt a failed delivery, re-running every quality gate.
+
+    No-ops when the delivery is not failed, has exhausted ``max_attempts``, was
+    suppressed as a duplicate, or (with ``respect_backoff``) is still inside its
+    backoff window.
+    """
     delivery = db.query(Deliveries).filter(Deliveries.id == delivery_id).one()
     if delivery.delivery_status != "failed" or delivery.attempt_count >= max_attempts:
         return delivery
-    wait_factor = 2 ** max(delivery.attempt_count - 1, 0)
-    delivery.error_message = f"retry_scheduled_backoff_factor={wait_factor}"
-    delivery.delivery_status = "queued"
-    db.commit()
-    return delivery
+    if delivery.error_message == DUPLICATE_SUPPRESSED:
+        return delivery
+    if respect_backoff and delivery.last_attempt_at is not None:
+        if utcnow() < delivery.last_attempt_at + retry_backoff(delivery.attempt_count):
+            return delivery
+    return _attempt_delivery(db, delivery)
+
+
+def retry_failed_deliveries(db: Session, max_attempts: int = 3) -> list[Deliveries]:
+    """Sweep all retryable failed deliveries whose backoff has elapsed."""
+    candidates = (
+        db.query(Deliveries)
+        .filter(Deliveries.delivery_status == "failed", Deliveries.attempt_count < max_attempts)
+        .all()
+    )
+    return [
+        retry_failed_delivery(db, str(d.id), max_attempts=max_attempts, respect_backoff=True) for d in candidates
+    ]

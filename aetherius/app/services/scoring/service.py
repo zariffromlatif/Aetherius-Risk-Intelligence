@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 SIGNAL_TYPES = {
     "earnings_risk",
     "guidance_risk",
@@ -18,6 +17,75 @@ SIGNAL_TYPES = {
     "policy_shock",
     "commodity_input_risk",
 }
+
+SEVERITY_RANK = {"low": 0, "moderate": 1, "elevated": 2, "high": 3}
+SHIP_SEVERITIES = frozenset({"elevated", "high"})
+PRIORITY_SCORE = {"low": 0.2, "normal": 0.5, "high": 0.8, "critical": 1.0}
+
+# Adverse / risk language. A direct mention of a watchlist name is only a
+# shippable risk flag when the observation actually carries downside content;
+# otherwise a benign product/news mention of the name would false-positive
+# (e.g. "Microsoft expands Copilot"). Lower-cased substring match.
+#
+# Single source of truth for the live signal path, the backtest harness and
+# the stress-test deck. Changing it changes the pinned backtest numbers.
+ADVERSE_TERMS: tuple[str, ...] = (
+    "loss", "losses", "plunge", "plunged", "slid", "slide", "fell", "fall", "drop", "drawdown",
+    "downgrade", "downgraded", "withdraw", "withdrawals", "deposit run", "deposit outflow",
+    "outflow", "outflows", "liquidity", "squeeze", "contagion", "panic", "fail", "failure",
+    "receivership", "collapse", "capital raise", "unrealized loss", "funding pressure",
+    "funding costs", "selloff", "sell-off", "warned", "concerns", "stress", "distress",
+    "deposit pressure", "reprice", "writedown", "write-down", "default", "insolven",
+)
+
+# Content cues used to pick a signal type for a direct match. Checked in order;
+# the first type with a matching cue wins. Lower-cased substring match.
+_SIGNAL_TYPE_CUES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("liquidity_or_refinancing_risk", (
+        "liquidity", "deposit run", "deposit outflow", "outflow", "withdrawals", "funding pressure",
+        "funding costs", "capital raise", "refinanc", "receivership", "insolven", "default",
+    )),
+    ("regulatory_risk", (
+        "regulator", "investigation", "probe", "subpoena", "lawsuit", "fraud", "sanction",
+        "enforcement", "auditor",
+    )),
+    ("balance_sheet_stress", ("unrealized loss", "writedown", "write-down", "impairment", "balance sheet")),
+    ("guidance_risk", ("guidance", "outlook", "forecast cut", "warned")),
+    ("valuation_compression", ("downgrade", "downgraded", "price target", "selloff", "sell-off", "plunge")),
+    ("sector_contagion", ("contagion",)),
+)
+
+
+def adverse_severity(raw_text: str | None) -> float:
+    """Map observation content to an event-severity score in [0, 1].
+
+    Benign text (no risk language) scores 0 so it cannot reach a shippable
+    severity on the strength of a name match alone; text with multiple risk
+    cues scores high.
+    """
+    low = (raw_text or "").lower()
+    hits = sum(1 for term in ADVERSE_TERMS if term in low)
+    if hits == 0:
+        return 0.0
+    return min(1.0, 0.45 + 0.2 * hits)
+
+
+def infer_signal_type(relationship_type: str | None, raw_text: str | None = None) -> str:
+    """Pick a signal type from the match kind and the observation content."""
+    rel = relationship_type or ""
+    if rel == "supplier_readthrough":
+        return "supplier_readthrough"
+    if rel == "customer_readthrough":
+        return "customer_readthrough"
+    if rel == "sector":
+        return "sector_contagion"
+    low = (raw_text or "").lower()
+    for sig_type, cues in _SIGNAL_TYPE_CUES:
+        if any(cue in low for cue in cues):
+            return sig_type
+    if rel == "direct":
+        return "earnings_risk"
+    return "macro_spillover"
 
 
 @dataclass
