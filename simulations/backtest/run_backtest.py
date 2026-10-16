@@ -236,6 +236,26 @@ def _render_summary(m: dict) -> str:
     return "\n".join(L)
 
 
+def _control_observation_count(event_id: str) -> int:
+    """Observations that map to any control name; 0 means the control test is vacuous."""
+    watchlist, observations, ground_truth = _load_event(event_id)
+    controls = {c["ticker"] for c in ground_truth.get("controls_should_not_flag", [])}
+    items = [i for i in watchlist["items"] if i["ticker"] in controls]
+    return sum(
+        1
+        for obs in observations
+        for item in items
+        if match_item(
+            obs["raw_text"].upper(),
+            ticker=item["ticker"],
+            company_name=item.get("company_name"),
+            sector=item.get("sector"),
+            aliases=item.get("aliases"),
+            relationships=item.get("relationships"),
+        )
+    )
+
+
 def _git_head() -> str:
     try:
         out = subprocess.run(
@@ -284,7 +304,10 @@ def main() -> None:
     print("Backtest complete for event=" + args.event)
     print("  detection recall : " + format(metrics["detection_recall"], ".0%") + " (" + str(len(metrics["detections"])) + "/" + str(metrics["affected_count"]) + ")")
     print("  median lead time : " + str(metrics["median_lead_time_days"]) + " days")
-    print("  false positives  : " + str(metrics["false_positive_count"]))
+    print(
+        "  false positives  : " + str(metrics["false_positive_count"])
+        + " (controls matched in corpus: " + str(_control_observation_count(args.event)) + ")"
+    )
     print("  metrics -> " + str(out_dir / "metrics.json"))
     print("  summary -> " + str(out_dir / "summary.md"))
 

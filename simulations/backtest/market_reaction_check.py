@@ -32,7 +32,9 @@ from app.services.entity_mapping.service import match_item  # noqa: E402
 EVENTS = ("svb-2023", "wirecard-2020", "ftx-2022")
 
 # A price decline being reported: a price noun near a falling verb, or a
-# "falling today"-style construction. Fixed before reading per-event results.
+# "falling today"-style construction. Disclosure: this pattern was written
+# after the first-flag headlines had been read, so it is not a blind test. Each
+# classification is printed with its headline so a reader can check it by eye.
 _PRICE_NOUN = r"(?:shares?|stocks?|equit(?:y|ies)|market value|selloff|sell-off)"
 _FALL_VERB = r"(?:plunge[sd]?|plummet(?:s|ed)?|tumble[sd]?|sink[s]?|sank|slump(?:s|ed)?|drop(?:s|ped)?|fall(?:s|ing)?|fell|slide[s]?|slid|crash(?:es|ed)?|shudder|tank(?:s|ed)?)"
 PRICE_REACTION_RE = re.compile(
@@ -43,6 +45,32 @@ PRICE_REACTION_RE = re.compile(
 
 def reports_price_reaction(text: str) -> bool:
     return bool(PRICE_REACTION_RE.search(text or ""))
+
+
+def control_coverage(event_id: str) -> dict[str, int]:
+    """How many corpus observations map to each control name.
+
+    A control can only produce a false positive if it appears in the corpus;
+    zero coverage means the "0 false positives on controls" result is vacuous.
+    """
+    watchlist, observations, ground_truth = _load_event(event_id)
+    items = {i["ticker"]: i for i in watchlist["items"]}
+    out = {}
+    for c in ground_truth.get("controls_should_not_flag", []):
+        item = items[c["ticker"]]
+        out[c["ticker"]] = sum(
+            1
+            for obs in observations
+            if match_item(
+                obs["raw_text"].upper(),
+                ticker=item["ticker"],
+                company_name=item.get("company_name"),
+                sector=item.get("sector"),
+                aliases=item.get("aliases"),
+                relationships=item.get("relationships"),
+            )
+        )
+    return out
 
 
 def check_event(event_id: str) -> list[dict]:
@@ -99,6 +127,8 @@ def main() -> None:
     else:
         for r in rows:
             print(r)
+    for e in EVENTS:
+        print(f"control coverage {e}: {control_coverage(e)} matched observations")
     ahead = [r for r in rows if (r["flag_lead_over_reaction_hours"] or 0) > 0]
     same = sum(1 for r in rows if r["first_flag_reports_price_move"])
     print(f"\n{len(rows)} detections; first flag itself reports a price fall in {same}; "

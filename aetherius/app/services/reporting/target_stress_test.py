@@ -371,8 +371,9 @@ def _executive_summary(
     bullets.append(
         "Detection track record on structurally comparable historical events: "
         "9 of 9 affected names detected across SVB-2023, Wirecard-2020, and FTX-2022; "
-        "0 false positives on 3 unrelated controls. Flags arrived with the market's "
-        "reaction, not before it: lead time is measured to formal resolution, not to the price move."
+        "Flags arrived with the market's reaction, not before it: lead time is measured to "
+        "formal resolution, not to the price move. False alarms were not tested: the control "
+        "names never appear in the backtest corpora."
     )
     return bullets
 
