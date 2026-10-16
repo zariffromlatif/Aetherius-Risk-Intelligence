@@ -126,6 +126,7 @@ simulations/
   forward_test/          # Pre-registered live forward test + daily summarizer
 docs/
   working_paper/         # Methodology, results and limitations (Revision 2)
+site/                    # Static project page (Cloudflare Pages build output directory)
 ```
 
 ---

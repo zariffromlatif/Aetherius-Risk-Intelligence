@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aetherius Risk Intelligence</title>
+<meta name="description" content="An open-source, deterministic downside-risk screen over SEC filings and financial news, with a reproducible crisis backtest, an honest market-timing analysis, and a pre-registered live forward test.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aetheriusresearch.tech/">
+<meta property="og:title" content="Aetherius Risk Intelligence">
+<meta property="og:description" content="Flagged 9 of 9 affected names in SVB, Wirecard and FTX before resolution, and 0 of 9 before the market reacted. Triage, not prediction. Open source, with a live forward test.">
+<meta property="og:image" content="https://aetheriusresearch.tech/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #fbfaf7; --surface: #ffffff; --ink: #141a24; --muted: #5b6472;
+  --rule: #e4e0d6; --accent: #8a6420; --accent-soft: #f4ecdc; --code: #f1efe9;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161e; --surface: #171d27; --ink: #e8e4da; --muted: #9aa3b0;
+    --rule: #2a3240; --accent: #d1a557; --accent-soft: #2a2416; --code: #1d2430;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161e; --surface: #171d27; --ink: #e8e4da; --muted: #9aa3b0;
+  --rule: #2a3240; --accent: #d1a557; --accent-soft: #2a2416; --code: #1d2430;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+header { padding: 56px 0 24px; }
+.eyebrow { color: var(--accent); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(30px, 6vw, 44px); line-height: 1.15; margin: 10px 0 14px; }
+h2 { font-family: Georgia, "Times New Roman", serif; font-size: 26px; margin: 48px 0 12px; }
+p { margin: 0 0 14px; }
+.lead { font-size: 19px; color: var(--muted); max-width: 680px; }
+.links { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 8px; }
+.btn {
+  display: inline-block; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;
+  border: 1px solid var(--rule); color: var(--ink); background: var(--surface);
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+a { color: var(--accent); }
+.demo { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--rule); display: block; margin-top: 28px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 18px 0; }
+.stat { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; }
+.stat b { display: block; font-size: 30px; font-family: Georgia, serif; }
+.stat span { color: var(--muted); font-size: 14px; }
+.stat.key { border-color: var(--accent); background: var(--accent-soft); }
+.table-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--rule); }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; }
+ul { padding-left: 20px; margin: 0 0 14px; }
+li { margin-bottom: 6px; }
+code { background: var(--code); padding: 1px 6px; border-radius: 4px; font-size: 14px; }
+pre { background: var(--code); padding: 14px; border-radius: 8px; overflow-x: auto; font-size: 14px; line-height: 1.5; }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 16px 0; }
+.flow div { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 12px; font-size: 14px; }
+.flow b { display: block; font-size: 15px; margin-bottom: 4px; }
+footer { margin: 64px 0 40px; padding-top: 20px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Open-source research software</div>
+    <h1>Aetherius Risk Intelligence</h1>
+    <p class="lead">A deterministic, auditable downside-risk screen over SEC EDGAR filings and GDELT financial news, with a reproducible crisis backtest, an honest market-timing analysis, and a pre-registered live forward test.</p>
+    <div class="links">
+      <a class="btn primary" href="https://github.com/zariffromlatif/Aetherius-Risk-Intelligence">Code on GitHub</a>
+      <a class="btn" href="https://github.com/zariffromlatif/Aetherius-Risk-Intelligence/blob/main/docs/working_paper/detection_timing_backtest_2026-07.md">Read the working paper</a>
+      <a class="btn" href="https://github.com/zariffromlatif/Aetherius-Risk-Intelligence/tree/forward-test-log">Live forward-test log</a>
+    </div>
+    <img class="demo" src="demo.gif" width="960" height="540" alt="Demo: the test suite passing, the SVB backtest, the market-timing check, and a generated stress-test deck">
+  </header>
+
+  <h2>The result, honestly</h2>
+  <p>Replayed on 161 real archived headlines from three crises, the screen flagged every affected company before its formal failure date and never flagged the unrelated control companies. But it never flagged a company before the press reported its stock already falling.</p>
+  <div class="stats">
+    <div class="stat"><b>9 / 9</b><span>affected names flagged before resolution (95% CI 66–100%)</span></div>
+    <div class="stat"><b>0 / 3</b><span>control names flagged</span></div>
+    <div class="stat key"><b>0 / 9</b><span>first flags that came before the market reaction</span></div>
+  </div>
+  <p>So the system is <strong>fast, auditable triage</strong> of a market reaction already underway, not a predictor. The working paper (Section 4.5) shows the check and the tests that pin it.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Event</th><th>Mechanism</th><th>Flagged before resolution</th><th>Median lead to resolution</th><th>Controls flagged</th><th>Before market reaction</th></tr></thead>
+      <tbody>
+        <tr><td>SVB 2023</td><td>Regional-bank contagion</td><td class="num">5 / 5</td><td class="num">2.34 days</td><td class="num">0 / 1</td><td class="num">0 / 5</td></tr>
+        <tr><td>Wirecard 2020</td><td>Accounting fraud</td><td class="num">1 / 1</td><td class="num">6.60 days</td><td class="num">0 / 1</td><td class="num">0 / 1</td></tr>
+        <tr><td>FTX 2022</td><td>Crypto counterparty contagion</td><td class="num">3 / 3</td><td class="num">7.12 days</td><td class="num">0 / 1</td><td class="num">0 / 3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="flow">
+    <div><b>Ingest</b>SEC filings and whitelisted news, deduplicated so reruns never double-count.</div>
+    <div><b>Match</b>Word-boundary entity matching, so the ticker AI never matches "SAID".</div>
+    <div><b>Score</b>Fixed, published weights. The same input always gives the same score.</div>
+    <div><b>Gate</b>No adverse language, no flag, however direct the name match.</div>
+    <div><b>Review</b>A human approves every brief; delivery checks evidence and disclaimers.</div>
+  </div>
+
+  <h2>Limitations</h2>
+  <ul>
+    <li><strong>Small sample chosen with hindsight.</strong> Three famous failures, nine names. The events and the adverse-word list were chosen knowing the outcomes.</li>
+    <li><strong>Known false positives.</strong> Tickers that are English words match ordinary text ("coin prices fall" matches Coinbase), and adverse terms match inside longer words.</li>
+    <li><strong>Filings add provenance, not signal.</strong> SEC filings are scored on form type and date, not their text.</li>
+  </ul>
+
+  <h2>The live forward test</h2>
+  <p>On 2026-10-16, before collecting any data, I committed a fixed list of 20 large US companies. Every day a GitHub Action scores live news and filings with the frozen model and commits the results. Because the record is append-only and timestamped by git, it can't be quietly edited afterwards. It will show how often the screen raises false alarms when nothing is happening, which the backtest cannot.</p>
+
+  <h2>Run it yourself</h2>
+<pre><code>git clone https://github.com/zariffromlatif/Aetherius-Risk-Intelligence.git
+cd Aetherius-Risk-Intelligence
+pip install -r requirements.txt
+pytest aetherius/tests -q
+python simulations/backtest/run_backtest.py --event svb-2023</code></pre>
+
+  <h2>About</h2>
+  <p>Built by Zarif Latif, a final-year undergraduate in Dhaka, as a study in building auditable data systems and evaluating them honestly. Python, FastAPI, PostgreSQL, Celery and GitHub Actions. Feedback, especially critical feedback, is welcome: <a href="mailto:zarif@aetheriusresearch.tech">zarif@aetheriusresearch.tech</a>.</p>
+
+  <footer>
+    Apache-2.0 licensed research software. Not investment advice, and not a recommendation to buy, sell or hold any security.
+  </footer>
+</div>
+</body>
+</html>
