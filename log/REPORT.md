@@ -1,34 +1,34 @@
 # Aetherius Forward Test — Live Report
 
-- Runs: 2 (2026-10-16T08:12:28Z → 2026-10-17T06:55:59Z), ~0.1 weeks
+- Runs: 3 (2026-10-16T08:12:28Z → 2026-10-18T07:13:13Z), ~0.1 weeks
 - Watchlist SHA-256: `5bde996cb7b19a6cb1af4cf24ecde6c6fce73a71d7731a8d8cdf337154fca3d0`
-- Matched observations logged: 33
+- Matched observations logged: 41
 - Shippable flags: 1 (7.0 per week across the whole list)
-- Runs with fetch errors: 2
+- Runs with fetch errors: 3
 
 ## Alert burden by name
 
-News fetch failures count runs (of 2) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
+News fetch failures count runs (of 3) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
 
 | Ticker | Matched obs | Flags | Flags / week | Labeled | Material | Not material | News fetch failures |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | AAPL | 0 | 0 | 0.00 | 0 | 0 | 0 | 0 |
 | AMZN | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| BA | 0 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| BA | 0 | 0 | 0.00 | 0 | 0 | 0 | 3 |
 | BAC | 1 | 0 | 0.00 | 0 | 0 | 0 | 2 |
 | COIN | 0 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 | DIS | 0 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| GM | 0 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| GOOGL | 1 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| GS | 2 | 0 | 0.00 | 0 | 0 | 0 | 0 |
-| INTC | 1 | 0 | 0.00 | 0 | 0 | 0 | 0 |
+| GM | 0 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| GOOGL | 3 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| GS | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| INTC | 2 | 0 | 0.00 | 0 | 0 | 0 | 0 |
 | JPM | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 | META | 2 | 0 | 0.00 | 0 | 0 | 0 | 0 |
-| MSFT | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| MSFT | 4 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 | NKE | 0 | 0 | 0.00 | 0 | 0 | 0 | 0 |
-| NVDA | 7 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| PFE | 2 | 0 | 0.00 | 0 | 0 | 0 | 0 |
-| TSLA | 7 | 1 | 7.00 | 1 | 0 | 1 | 0 |
+| NVDA | 8 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| PFE | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| TSLA | 9 | 1 | 7.00 | 1 | 0 | 1 | 0 |
 | WFC | 1 | 0 | 0.00 | 0 | 0 | 0 | 0 |
 | XOM | 3 | 0 | 0.00 | 0 | 0 | 0 | 0 |
 | ZION | 0 | 0 | 0.00 | 0 | 0 | 0 | 0 |
