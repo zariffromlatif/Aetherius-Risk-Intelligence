@@ -50,7 +50,8 @@ the outcome, and how many of its alerts are noise?**
 - **GDELT coverage** limits the news feed to the whitelisted domains in `gdelt_adapter.DOWNSIDE_DOMAINS`.
 - **GDELT throttling.** GDELT rate-limits GitHub's shared runners. On the first
   run (2026-10-16), 6 of 20 names got "429 Too Many Requests" after every retry.
-  Each run now retries failed names once after a 2-minute cooldown, stops
+  Requests are now spaced 20 seconds apart (the second live run, still at
+  6 seconds, again lost 6 of 20 names). Each run retries failed names once after a 2-minute cooldown, stops
   starting requests after a 40-minute budget, and records every name it could
   not fetch. The report's **News fetch failures** column shows these gaps: a
   failed day is missing coverage, not a quiet day.

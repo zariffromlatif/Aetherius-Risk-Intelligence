@@ -45,8 +45,12 @@ from app.services.ingestion.gdelt_adapter import (  # noqa: E402
 )
 
 WATCHLIST_PATH = HERE / "watchlist.json"
-GDELT_PAUSE_SECONDS = 6.0
-GDELT_RETRY_PAUSE_SECONDS = 15.0
+# GDELT throttles GitHub's shared runners hard: at a 6 s pace, 6 of 20 names
+# were refused (429) on each of the first two live runs even after a retry
+# pass. Pacing requests well apart avoids most refusals; 20 names at ~20 s
+# is about 7 minutes, well inside the budget.
+GDELT_PAUSE_SECONDS = 20.0
+GDELT_RETRY_PAUSE_SECONDS = 30.0
 GDELT_COOLDOWN_SECONDS = 120.0
 GDELT_BUDGET_SECONDS = 40 * 60.0
 EDGAR_LOOKBACK_DAYS = 3
