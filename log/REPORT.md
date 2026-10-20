@@ -1,37 +1,37 @@
 # Aetherius Forward Test — Live Report
 
-- Runs: 4 (2026-10-16T08:12:28Z → 2026-10-19T07:45:09Z), ~0.3 weeks
+- Runs: 5 (2026-10-16T08:12:28Z → 2026-10-20T07:31:49Z), ~0.4 weeks
 - Watchlist SHA-256: `5bde996cb7b19a6cb1af4cf24ecde6c6fce73a71d7731a8d8cdf337154fca3d0`
-- Matched observations logged: 53
-- Shippable flags: 1 (3.5 per week across the whole list)
-- Runs with fetch errors: 4
+- Matched observations logged: 78
+- Shippable flags: 1 (2.3 per week across the whole list)
+- Runs with fetch errors: 5
 
 ## Alert burden by name
 
-News fetch failures count runs (of 4) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
+News fetch failures count runs (of 5) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
 
 | Ticker | Matched obs | Flags | Flags / week | Labeled | Material | Not material | News fetch failures |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | AAPL | 2 | 0 | 0.00 | 0 | 0 | 0 | 0 |
-| AMZN | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| BA | 0 | 0 | 0.00 | 0 | 0 | 0 | 3 |
-| BAC | 1 | 0 | 0.00 | 0 | 0 | 0 | 3 |
-| COIN | 0 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| AMZN | 6 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| BA | 0 | 0 | 0.00 | 0 | 0 | 0 | 4 |
+| BAC | 3 | 0 | 0.00 | 0 | 0 | 0 | 3 |
+| COIN | 1 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 | DIS | 0 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| GM | 0 | 0 | 0.00 | 0 | 0 | 0 | 3 |
+| GM | 2 | 0 | 0.00 | 0 | 0 | 0 | 3 |
 | GOOGL | 3 | 0 | 0.00 | 0 | 0 | 0 | 3 |
-| GS | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| INTC | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| JPM | 4 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| GS | 4 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| INTC | 5 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| JPM | 5 | 0 | 0.00 | 0 | 0 | 0 | 2 |
 | META | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| MSFT | 7 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| MSFT | 10 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 | NKE | 0 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| NVDA | 13 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| PFE | 2 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| TSLA | 9 | 1 | 3.50 | 1 | 0 | 1 | 1 |
-| WFC | 1 | 0 | 0.00 | 0 | 0 | 0 | 0 |
-| XOM | 3 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| ZION | 0 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| NVDA | 17 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| PFE | 3 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| TSLA | 9 | 1 | 2.33 | 1 | 0 | 1 | 2 |
+| WFC | 1 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| XOM | 4 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| ZION | 1 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 
 ## Precision (human-labeled)
 
