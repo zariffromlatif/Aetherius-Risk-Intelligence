@@ -1,36 +1,36 @@
 # Aetherius Forward Test — Live Report
 
-- Runs: 8 (2026-10-16T08:12:28Z → 2026-10-23T07:30:10Z), ~0.9 weeks
+- Runs: 9 (2026-10-16T08:12:28Z → 2026-10-24T07:16:49Z), ~1.0 weeks
 - Watchlist SHA-256: `5bde996cb7b19a6cb1af4cf24ecde6c6fce73a71d7731a8d8cdf337154fca3d0`
-- Matched observations logged: 153
-- Shippable flags: 6 (7.0 per week across the whole list)
-- Runs with fetch errors: 7
+- Matched observations logged: 168
+- Shippable flags: 6 (6.0 per week across the whole list)
+- Runs with fetch errors: 8
 
 ## Alert burden by name
 
-News fetch failures count runs (of 8) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
+News fetch failures count runs (of 9) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
 
 | Ticker | Matched obs | Flags | Flags / week | Labeled | Material | Not material | News fetch failures |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | AAPL | 6 | 0 | 0.00 | 0 | 0 | 0 | 0 |
-| AMZN | 6 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| BA | 1 | 0 | 0.00 | 0 | 0 | 0 | 5 |
-| BAC | 6 | 0 | 0.00 | 0 | 0 | 0 | 3 |
+| AMZN | 8 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| BA | 1 | 0 | 0.00 | 0 | 0 | 0 | 6 |
+| BAC | 7 | 0 | 0.00 | 0 | 0 | 0 | 3 |
 | COIN | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| DIS | 1 | 1 | 1.17 | 0 | 0 | 0 | 3 |
+| DIS | 1 | 1 | 1.00 | 0 | 0 | 0 | 3 |
 | GM | 5 | 0 | 0.00 | 0 | 0 | 0 | 4 |
-| GOOGL | 5 | 0 | 0.00 | 0 | 0 | 0 | 4 |
-| GS | 10 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| INTC | 11 | 3 | 3.50 | 0 | 0 | 0 | 1 |
+| GOOGL | 8 | 0 | 0.00 | 0 | 0 | 0 | 4 |
+| GS | 10 | 0 | 0.00 | 0 | 0 | 0 | 3 |
+| INTC | 12 | 3 | 3.00 | 0 | 0 | 0 | 1 |
 | JPM | 11 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| META | 8 | 0 | 0.00 | 0 | 0 | 0 | 3 |
-| MSFT | 12 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| NKE | 2 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| NVDA | 29 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| PFE | 7 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| TSLA | 23 | 2 | 2.33 | 1 | 0 | 1 | 2 |
-| WFC | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| XOM | 4 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| META | 9 | 0 | 0.00 | 0 | 0 | 0 | 3 |
+| MSFT | 14 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| NKE | 2 | 0 | 0.00 | 0 | 0 | 0 | 3 |
+| NVDA | 32 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| PFE | 7 | 0 | 0.00 | 0 | 0 | 0 | 3 |
+| TSLA | 25 | 2 | 2.00 | 1 | 0 | 1 | 3 |
+| WFC | 2 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| XOM | 4 | 0 | 0.00 | 0 | 0 | 0 | 3 |
 | ZION | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 
 ## Precision (human-labeled)
