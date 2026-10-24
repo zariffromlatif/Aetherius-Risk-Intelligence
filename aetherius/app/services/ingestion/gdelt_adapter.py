@@ -11,9 +11,12 @@ backtests that anchor the detection track record.
 
 Docs: https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/
 
-Rate limits are not published but empirically ~1-2 req/s is safe. The API caps
-each response at 250 articles, so callers walking a wide window should page by
-narrowing the timespan.
+GDELT asks for at most one request every 5 seconds and throttles shared
+addresses harder than that. When it throttles it may answer with HTTP 429 or
+with a plain-text "Please limit requests..." body; either way ``fetch_articles``
+raises rather than returning an empty list, so a throttled fetch can never be
+mistaken for "no news". The API caps each response at 250 articles, so callers
+walking a wide window should page by narrowing the timespan.
 """
 from __future__ import annotations
 
@@ -27,6 +30,20 @@ from app.models.entities import SourceObservations
 from app.services.ingestion.service import ingest_observation
 
 _DOC_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
+# Lower-cased fragment of the plain-text body GDELT sends when throttling.
+_THROTTLE_MARKER = "limit requests"
+
+
+class GdeltError(RuntimeError):
+    """GDELT answered with an error instead of results.
+
+    Raised instead of returning ``[]`` so callers record a coverage gap rather
+    than a quiet window.
+    """
+
+
+class GdeltRateLimitError(GdeltError):
+    """GDELT was still throttling after the full retry ladder."""
 
 # Sources that publish substantive financial/downside-risk reporting. GDELT
 # indexes tens of thousands of domains including press-release wires, syndicated
@@ -108,6 +125,11 @@ def fetch_articles(
     Returns article dicts, optionally filtered to a domain whitelist in Python
     after the network call (GDELT's own query length limit rules out doing this
     server-side for whitelists larger than a few domains).
+
+    Raises ``GdeltRateLimitError`` if GDELT is still throttling after the retry
+    ladder, and ``GdeltError`` for any other non-JSON answer (query errors such
+    as "The specified phrase is too short."). An empty list always means GDELT
+    returned results and none matched.
     """
     params = {
         "query": build_query(company_name, aliases=aliases),
@@ -125,20 +147,25 @@ def fetch_articles(
         # GDELT throttles hard on rapid successive calls (undocumented). Retry
         # with exponential backoff — the 5s / 15s / 45s ladder is empirically
         # enough for the corpus-builder flow that iterates over 6-10 targets.
+        delays = (0.0, 5.0, 15.0, 45.0)
         resp = None
-        for delay in (0.0, 5.0, 15.0, 45.0):
+        for delay in delays:
             if delay:
                 time.sleep(delay)
             resp = client.get(_DOC_URL, params=params, headers=_headers())
-            if resp.status_code != 429:
+            if not _is_throttled(resp):
                 break
         assert resp is not None
+        if _is_throttled(resp):
+            raise GdeltRateLimitError(
+                f"GDELT still throttling after {len(delays)} attempts "
+                f"(HTTP {resp.status_code}): {_body_snippet(resp)}"
+            )
         resp.raise_for_status()
-        # GDELT returns text/plain on query errors ("Your query was too short
-        # or too long."); guard against that before decoding JSON.
-        content_type = resp.headers.get("content-type", "")
-        if "json" not in content_type.lower():
-            return []
+        # GDELT returns text/plain on query errors ("The specified phrase is
+        # too short."). Returning [] here would read as "no news" downstream.
+        if not _is_json(resp):
+            raise GdeltError(f"GDELT returned an error (HTTP {resp.status_code}): {_body_snippet(resp)}")
         payload = resp.json()
     finally:
         if owns_client:
@@ -147,6 +174,25 @@ def fetch_articles(
     if domain_whitelist:
         articles = [a for a in articles if (a.get("domain") or "").lower() in domain_whitelist]
     return articles
+
+
+def _is_json(resp: httpx.Response) -> bool:
+    return "json" in resp.headers.get("content-type", "").lower()
+
+
+def _is_throttled(resp: httpx.Response) -> bool:
+    """True for a 429 or GDELT's plain-text "Please limit requests" answer.
+
+    The body is only inspected when it is not JSON, so an article title that
+    happens to contain the marker cannot trigger a false throttle.
+    """
+    if resp.status_code == 429:
+        return True
+    return not _is_json(resp) and _THROTTLE_MARKER in resp.text.lower()
+
+
+def _body_snippet(resp: httpx.Response, limit: int = 120) -> str:
+    return " ".join(resp.text.split())[:limit]
 
 
 def parse_articles(payload: dict) -> list[dict]:
