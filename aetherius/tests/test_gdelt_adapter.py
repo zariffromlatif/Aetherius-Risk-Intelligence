@@ -1,11 +1,18 @@
 from datetime import datetime, timezone
 
+import httpx
+import pytest
+
+from app.services.ingestion import gdelt_adapter
 from app.services.ingestion.gdelt_adapter import (
     DOWNSIDE_DOMAINS,
+    GdeltError,
+    GdeltRateLimitError,
     _article_to_text,
     _fmt_gdelt_datetime,
     _parse_gdelt_seendate,
     build_query,
+    fetch_articles,
     parse_articles,
 )
 
@@ -125,3 +132,73 @@ def test_article_to_text_does_not_inject_target_name_when_title_omits_it() -> No
 def test_downside_domains_covers_key_wires() -> None:
     for domain in ("reuters.com", "bloomberg.com", "wsj.com", "ft.com"):
         assert domain in DOWNSIDE_DOMAINS
+
+
+# --- fetch_articles error handling (offline, via httpx.MockTransport) ---
+
+# Verbatim start of the body GDELT sends, with HTTP 200 and text/plain, when it
+# throttles a caller. This used to be read as "no articles".
+THROTTLE_TEXT = "Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger queries."
+WINDOW = (datetime(2026, 10, 1, tzinfo=timezone.utc), datetime(2026, 10, 8, tzinfo=timezone.utc))
+
+
+def _client(responses: list[httpx.Response]) -> tuple[httpx.Client, list[httpx.Request]]:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return responses[min(len(seen), len(responses)) - 1]
+
+    return httpx.Client(transport=httpx.MockTransport(handler)), seen
+
+
+def _text(body: str, status: int = 200) -> httpx.Response:
+    return httpx.Response(status, text=body, headers={"content-type": "text/plain; charset=utf-8"})
+
+
+@pytest.fixture(autouse=True)
+def _no_backoff_sleep(monkeypatch) -> None:
+    monkeypatch.setattr(gdelt_adapter.time, "sleep", lambda _s: None)
+
+
+def _fetch(client: httpx.Client) -> list[dict]:
+    return fetch_articles("Nike", WINDOW[0], WINDOW[1], client=client)
+
+
+def test_fetch_raises_when_throttle_text_persists() -> None:
+    client, seen = _client([_text(THROTTLE_TEXT)])
+    with pytest.raises(GdeltRateLimitError, match="limit requests"):
+        _fetch(client)
+    assert len(seen) == 4  # the full retry ladder ran before giving up
+
+
+def test_fetch_retries_through_throttle_text_then_returns_articles() -> None:
+    client, seen = _client([_text(THROTTLE_TEXT), httpx.Response(200, json=SAMPLE_PAYLOAD)])
+    assert len(_fetch(client)) == 2
+    assert len(seen) == 2
+
+
+def test_fetch_raises_rate_limit_error_on_persistent_429() -> None:
+    client, _ = _client([_text("Too Many Requests", status=429)])
+    with pytest.raises(GdeltRateLimitError):
+        _fetch(client)
+
+
+def test_fetch_raises_on_plain_text_query_error() -> None:
+    client, seen = _client([_text("The specified phrase is too short.")])
+    with pytest.raises(GdeltError, match="too short") as exc:
+        _fetch(client)
+    assert not isinstance(exc.value, GdeltRateLimitError)
+    assert len(seen) == 1  # query errors are not retried
+
+
+def test_fetch_empty_json_is_a_real_empty_result() -> None:
+    client, _ = _client([httpx.Response(200, json={})])
+    assert _fetch(client) == []
+
+
+def test_throttle_marker_inside_json_results_is_not_a_throttle() -> None:
+    payload = {"articles": [dict(SAMPLE_PAYLOAD["articles"][0], title="Exchange moves to limit requests for data")]}
+    client, seen = _client([httpx.Response(200, json=payload)])
+    assert len(_fetch(client)) == 1
+    assert len(seen) == 1

@@ -147,6 +147,23 @@ def test_gdelt_budget_stops_new_requests_and_names_skipped() -> None:
     assert clock.t < 150.0 + ft.GDELT_PAUSE_SECONDS + 100.0  # no pointless retry cooldown
 
 
+def test_gdelt_throttle_text_becomes_a_reported_gap(monkeypatch) -> None:
+    # End to end with the real adapter: GDELT's 200/text-plain throttle answer
+    # must surface as an error for the name, not as "0 articles, ok".
+    import httpx
+
+    from app.services.ingestion import gdelt_adapter
+
+    monkeypatch.setattr(gdelt_adapter.time, "sleep", lambda _s: None)
+    throttled = httpx.Response(200, text="Please limit requests to one every 5 seconds.",
+                               headers={"content-type": "text/plain"})
+    client = httpx.Client(transport=httpx.MockTransport(lambda _req: throttled))
+    clock = _FakeClock()
+    obs, errors = ft.fetch_gdelt(GDELT_ITEMS[:1], NOW, NOW, client, sleep=clock.sleep, clock=clock)
+    assert obs == []
+    assert len(errors) == 1 and errors[0].startswith("gdelt:AAA:GDELT still throttling")
+
+
 def test_report_counts_news_fetch_failures_per_name() -> None:
     runs = [
         {"recorded_at": "2026-10-16T00:00:00Z", "watchlist_sha256": "a", "errors": ["gdelt:NVDA:429 Too Many Requests"]},
