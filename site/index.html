@@ -65,13 +65,6 @@ pre { background: var(--code); padding: 14px; border-radius: 8px; overflow-x: au
 .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 16px 0; }
 .flow div { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 12px; font-size: 14px; }
 .flow b { display: block; font-size: 15px; margin-bottom: 4px; }
-.services { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 18px 0; }
-.service { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
-.service b { font-family: Georgia, serif; font-size: 19px; }
-.service p { color: var(--muted); font-size: 15px; margin: 0; flex: 1; }
-.service .price { color: var(--accent); font-weight: 600; font-size: 15px; }
-.service.key { border-color: var(--accent); background: var(--accent-soft); }
-.contact { font-size: 17px; }
 footer { margin: 64px 0 40px; padding-top: 20px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 14px; }
 </style>
 </head>
@@ -85,7 +78,7 @@ footer { margin: 64px 0 40px; padding-top: 20px; border-top: 1px solid var(--rul
       <a class="btn primary" href="https://github.com/zariffromlatif/Aetherius-Risk-Intelligence">Code on GitHub</a>
       <a class="btn" href="https://github.com/zariffromlatif/Aetherius-Risk-Intelligence/blob/main/docs/working_paper/detection_timing_backtest_2026-07.md">Read the working paper</a>
       <a class="btn" href="https://github.com/zariffromlatif/Aetherius-Risk-Intelligence/tree/forward-test-log">Live forward-test log</a>
-      <a class="btn" href="#work">Work with me</a>
+      <a class="btn" href="#report">Example report</a>
     </div>
     <img class="demo" src="demo.gif" width="960" height="540" alt="Demo: the test suite passing, the SVB backtest, the market-timing check, and a generated stress-test deck">
   </header>
@@ -137,20 +130,15 @@ pip install -r requirements.txt
 pytest aetherius/tests -q
 python simulations/backtest/run_backtest.py --event svb-2023</code></pre>
 
-  <h2 id="work">Work with me</h2>
-  <p>I take on freelance data work using the same approach as Aetherius: primary sources, reproducible code, and results you can check.</p>
-  <div class="services">
-    <div class="service key"><b>Company red-flag report</b><p>Warning signs from a US public company's SEC filings and news, in plain English, with every point linked to its source. Delivered as a PDF.</p><span class="price">From $49 · 3 days</span></div>
-    <div class="service"><b>SEC financial data</b><p>Financials, filing timelines and 8-K events from SEC EDGAR for one company or many, as a clean spreadsheet or a script that refreshes it.</p><span class="price">Free quote within 24 hours</span></div>
-    <div class="service"><b>Scrapers and data pipelines</b><p>Python tools that collect data from websites and keep it up to date in CSV, Excel, a database or Google Sheets.</p><span class="price">Free quote within 24 hours</span></div>
-  </div>
+  <h2 id="report">Example report</h2>
+  <p>A four-page red-flag brief on NIKE, Inc., written from its SEC filings between June and October 2026. It ranks six flags by severity, from shrinking direct sales to a jump in shareholder opposition to executive pay, and lists a filing timeline and the checks that came back clear. Every figure links to the filing it came from. It shows the kind of analyst write-up the screen is meant to support. Not investment advice.</p>
   <div class="links">
-    <a class="btn primary" href="nike-sample-report.pdf">Sample report: NIKE, Inc. (PDF)</a>
+    <a class="btn primary" href="nike-sample-report.pdf">Read the NIKE report (PDF)</a>
   </div>
-  <p class="contact">Email <a href="mailto:zarif.latif.biz@gmail.com">zarif.latif.biz@gmail.com</a> with the company, website or data you need. Reports are research summaries, not investment advice.</p>
 
   <h2>About</h2>
-  <p>Built by Zarif Latif as a study in building auditable data systems and evaluating them honestly. Python, FastAPI, PostgreSQL, Celery and GitHub Actions. Feedback, especially critical feedback, is welcome: <a href="mailto:zarif.latif.biz@gmail.com">zarif.latif.biz@gmail.com</a>.</p>
+  <p>Built by Zarif Latif as a study in building auditable data systems and evaluating them honestly. Python, FastAPI, PostgreSQL, Celery and GitHub Actions.</p>
+  <p>I'm looking for roles in data engineering, risk analytics or financial data. If your team works on problems like this, I'd be glad to talk: <a href="mailto:zarif.latif.biz@gmail.com">zarif.latif.biz@gmail.com</a>. Feedback, especially critical feedback, is welcome too.</p>
 
   <footer>
     Apache-2.0 licensed research software. Not investment advice, and not a recommendation to buy, sell or hold any security.
