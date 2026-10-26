@@ -78,6 +78,7 @@ footer { margin: 64px 0 40px; padding-top: 20px; border-top: 1px solid var(--rul
       <a class="btn primary" href="https://github.com/zariffromlatif/Aetherius-Risk-Intelligence">Code on GitHub</a>
       <a class="btn" href="https://github.com/zariffromlatif/Aetherius-Risk-Intelligence/blob/main/docs/working_paper/detection_timing_backtest_2026-07.md">Read the working paper</a>
       <a class="btn" href="https://github.com/zariffromlatif/Aetherius-Risk-Intelligence/tree/forward-test-log">Live forward-test log</a>
+      <a class="btn" href="#report">Example report</a>
     </div>
     <img class="demo" src="demo.gif" width="960" height="540" alt="Demo: the test suite passing, the SVB backtest, the market-timing check, and a generated stress-test deck">
   </header>
@@ -129,8 +130,15 @@ pip install -r requirements.txt
 pytest aetherius/tests -q
 python simulations/backtest/run_backtest.py --event svb-2023</code></pre>
 
+  <h2 id="report">Example report</h2>
+  <p>A four-page red-flag brief on NIKE, Inc., written from its SEC filings between June and October 2026. It ranks six flags by severity, from shrinking direct sales to a jump in shareholder opposition to executive pay, and lists a filing timeline and the checks that came back clear. Every figure links to the filing it came from. It shows the kind of analyst write-up the screen is meant to support. Not investment advice.</p>
+  <div class="links">
+    <a class="btn primary" href="nike-sample-report.pdf">Read the NIKE report (PDF)</a>
+  </div>
+
   <h2>About</h2>
-  <p>Built by Zarif Latif as a study in building auditable data systems and evaluating them honestly. Python, FastAPI, PostgreSQL, Celery and GitHub Actions. Feedback, especially critical feedback, is welcome: <a href="mailto:zarif.latif.biz@gmail.com">zarif.latif.biz@gmail.com</a>.</p>
+  <p>Built by Zarif Latif as a study in building auditable data systems and evaluating them honestly. Python, FastAPI, PostgreSQL, Celery and GitHub Actions.</p>
+  <p>I'm looking for roles in data engineering, risk analytics or financial data. If your team works on problems like this, I'd be glad to talk: <a href="mailto:zarif.latif.biz@gmail.com">zarif.latif.biz@gmail.com</a>. Feedback, especially critical feedback, is welcome too.</p>
 
   <footer>
     Apache-2.0 licensed research software. Not investment advice, and not a recommendation to buy, sell or hold any security.
