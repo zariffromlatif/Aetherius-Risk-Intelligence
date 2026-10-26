@@ -5,7 +5,6 @@
 [![CI](https://github.com/zariffromlatif/Aetherius-Risk-Intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/zariffromlatif/Aetherius-Risk-Intelligence/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-green.svg)](https://www.python.org/)
-[![Tests: 116 passed](https://img.shields.io/badge/Tests-116%20passed-success.svg)](aetherius/tests/)
 
 ![Demo: test suite, SVB backtest, market-timing check, and generated stress-test deck](docs/assets/demo.gif)
 
@@ -32,7 +31,8 @@ Aetherius watches a list of companies. It reads new headlines and filings, decid
 | **Quality gates before anything reaches a reader**: banned hype language, required disclaimer, evidence for every high-severity item, retry with backoff, dead-lettering | [`delivery/`](aetherius/app/services/delivery/service.py) |
 | **Reproducible research**: frozen fixtures, bit-identical metrics, tests that pin the published numbers | [`simulations/backtest/`](simulations/backtest/), [`tests/`](aetherius/tests/) |
 | **Research honesty**: confidence intervals, a market-timing check that weakens the headline claim, documented false-positive classes | [working paper](docs/working_paper/detection_timing_backtest_2026-07.md) |
-| **Engineering hygiene**: 116 tests, ruff lint and CI on every PR | [`.github/workflows/`](.github/workflows/) |
+| **Analyst output**: a four-page red-flag brief on NIKE, Inc. written from its SEC filings, with every figure linked to the filing it came from | [`site/nike-sample-report.pdf`](site/nike-sample-report.pdf) |
+| **Engineering hygiene**: 129 tests, ruff lint and CI on every PR | [`.github/workflows/`](.github/workflows/) |
 
 ---
 
@@ -82,7 +82,7 @@ git clone https://github.com/zariffromlatif/Aetherius-Risk-Intelligence.git
 cd Aetherius-Risk-Intelligence
 pip install -r requirements.txt
 
-pytest aetherius/tests -q                                          # 116 tests
+pytest aetherius/tests -q                                          # 129 tests
 python simulations/backtest/run_backtest.py --event svb-2023       # or wirecard-2020, ftx-2022
 PYTHONPATH=aetherius python simulations/backtest/market_reaction_check.py --markdown
 ```
@@ -121,7 +121,7 @@ aetherius/
       reporting/         # Weekly summaries, stress-test deck assembly
     workers/             # Celery beat: hourly ingestion, briefs, retries, retention
   alembic/ migrations/   # Schema
-  tests/                 # 116 tests
+  tests/                 # 129 tests
 simulations/
   backtest/              # Frozen crisis fixtures, replay harness, market-timing check
   forward_test/          # Pre-registered live forward test + daily summarizer
@@ -131,6 +131,10 @@ site/                    # Static project page (Cloudflare Pages build output di
 ```
 
 ---
+
+## Author
+
+Built by Zarif Latif. I'm looking for roles in data engineering, risk analytics or financial data. If your team works on problems like this, I'd be glad to talk: [zarif.latif.biz@gmail.com](mailto:zarif.latif.biz@gmail.com).
 
 ## Contributing
 
