@@ -1,37 +1,37 @@
 # Aetherius Forward Test — Live Report
 
-- Runs: 13 (2026-10-16T08:12:28Z → 2026-10-28T08:27:41Z), ~1.7 weeks
+- Runs: 14 (2026-10-16T08:12:28Z → 2026-10-29T08:27:51Z), ~1.9 weeks
 - Watchlist SHA-256: `5bde996cb7b19a6cb1af4cf24ecde6c6fce73a71d7731a8d8cdf337154fca3d0`
-- Matched observations logged: 181
-- Shippable flags: 7 (4.1 per week across the whole list)
-- Runs with fetch errors: 12
+- Matched observations logged: 186
+- Shippable flags: 7 (3.8 per week across the whole list)
+- Runs with fetch errors: 13
 
 ## Alert burden by name
 
-News fetch failures count runs (of 13) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
+News fetch failures count runs (of 14) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
 
 | Ticker | Matched obs | Flags | Flags / week | Labeled | Material | Not material | News fetch failures |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | AAPL | 7 | 0 | 0.00 | 0 | 0 | 0 | 0 |
-| AMZN | 8 | 0 | 0.00 | 0 | 0 | 0 | 6 |
-| BA | 3 | 0 | 0.00 | 0 | 0 | 0 | 7 |
+| AMZN | 8 | 0 | 0.00 | 0 | 0 | 0 | 7 |
+| BA | 3 | 0 | 0.00 | 0 | 0 | 0 | 8 |
 | BAC | 7 | 0 | 0.00 | 0 | 0 | 0 | 3 |
 | COIN | 2 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| DIS | 1 | 1 | 0.58 | 0 | 0 | 0 | 4 |
-| GM | 7 | 0 | 0.00 | 0 | 0 | 0 | 5 |
-| GOOGL | 9 | 0 | 0.00 | 0 | 0 | 0 | 5 |
-| GS | 11 | 0 | 0.00 | 0 | 0 | 0 | 4 |
-| INTC | 13 | 3 | 1.75 | 0 | 0 | 0 | 2 |
+| DIS | 1 | 1 | 0.54 | 0 | 0 | 0 | 4 |
+| GM | 7 | 0 | 0.00 | 0 | 0 | 0 | 6 |
+| GOOGL | 10 | 0 | 0.00 | 0 | 0 | 0 | 5 |
+| GS | 11 | 0 | 0.00 | 0 | 0 | 0 | 5 |
+| INTC | 13 | 3 | 1.62 | 0 | 0 | 0 | 2 |
 | JPM | 11 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| META | 10 | 1 | 0.58 | 0 | 0 | 0 | 3 |
-| MSFT | 14 | 0 | 0.00 | 0 | 0 | 0 | 1 |
+| META | 10 | 1 | 0.54 | 0 | 0 | 0 | 4 |
+| MSFT | 17 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 | NKE | 2 | 0 | 0.00 | 0 | 0 | 0 | 6 |
 | NVDA | 34 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| PFE | 7 | 0 | 0.00 | 0 | 0 | 0 | 3 |
-| TSLA | 27 | 2 | 1.17 | 1 | 0 | 1 | 3 |
-| WFC | 2 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| PFE | 7 | 0 | 0.00 | 0 | 0 | 0 | 4 |
+| TSLA | 27 | 2 | 1.08 | 1 | 0 | 1 | 4 |
+| WFC | 3 | 0 | 0.00 | 0 | 0 | 0 | 2 |
 | XOM | 4 | 0 | 0.00 | 0 | 0 | 0 | 7 |
-| ZION | 2 | 0 | 0.00 | 0 | 0 | 0 | 3 |
+| ZION | 2 | 0 | 0.00 | 0 | 0 | 0 | 4 |
 
 ## Precision (human-labeled)
 
@@ -44,6 +44,8 @@ A flag that mostly follows a fall (negative *before*) is reporting the move, not
 | Ticker | Flag observed | Before 5d | After 5d | Max drawdown after | Title |
 | --- | --- | --- | --- | --- | --- |
 | TSLA | 2026-10-16T02:15:00Z | -3.4% | +3.4% | -2.1% | Dow Jones Futures : Techs Slide On Anthropic Valuation Report ; Tesla  |
+| INTC | 2026-10-21T14:00:00Z | -5.3% | +2.8% | -8.0% | Intel Stock Still Trades at 84 Times Earnings After a 35 % Drop . Im N |
+| DIS | 2026-10-21T14:45:00Z | +2.6% | -2.5% | -2.5% | I Worked at Disney World : Favorite Things to Do in the Parks Right No |
 
 - Flags followed by a ≥10% drawdown within 5 sessions: 0
 - Flags preceded by a ≥10% fall in the prior 5 sessions: 0
