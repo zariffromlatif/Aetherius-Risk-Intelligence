@@ -1,36 +1,36 @@
 # Aetherius Forward Test — Live Report
 
-- Runs: 15 (2026-10-16T08:12:28Z → 2026-10-30T08:37:49Z), ~2.0 weeks
+- Runs: 16 (2026-10-16T08:12:28Z → 2026-10-31T08:24:59Z), ~2.1 weeks
 - Watchlist SHA-256: `5bde996cb7b19a6cb1af4cf24ecde6c6fce73a71d7731a8d8cdf337154fca3d0`
-- Matched observations logged: 193
-- Shippable flags: 7 (3.5 per week across the whole list)
-- Runs with fetch errors: 14
+- Matched observations logged: 197
+- Shippable flags: 7 (3.3 per week across the whole list)
+- Runs with fetch errors: 15
 
 ## Alert burden by name
 
-News fetch failures count runs (of 15) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
+News fetch failures count runs (of 16) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
 
 | Ticker | Matched obs | Flags | Flags / week | Labeled | Material | Not material | News fetch failures |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | AAPL | 7 | 0 | 0.00 | 0 | 0 | 0 | 0 |
-| AMZN | 9 | 0 | 0.00 | 0 | 0 | 0 | 8 |
+| AMZN | 10 | 0 | 0.00 | 0 | 0 | 0 | 9 |
 | BA | 3 | 0 | 0.00 | 0 | 0 | 0 | 8 |
-| BAC | 7 | 0 | 0.00 | 0 | 0 | 0 | 3 |
+| BAC | 8 | 0 | 0.00 | 0 | 0 | 0 | 3 |
 | COIN | 4 | 0 | 0.00 | 0 | 0 | 0 | 1 |
-| DIS | 1 | 1 | 0.50 | 0 | 0 | 0 | 4 |
+| DIS | 1 | 1 | 0.47 | 0 | 0 | 0 | 4 |
 | GM | 8 | 0 | 0.00 | 0 | 0 | 0 | 7 |
 | GOOGL | 11 | 0 | 0.00 | 0 | 0 | 0 | 5 |
 | GS | 11 | 0 | 0.00 | 0 | 0 | 0 | 6 |
-| INTC | 14 | 3 | 1.50 | 0 | 0 | 0 | 3 |
+| INTC | 15 | 3 | 1.40 | 0 | 0 | 0 | 3 |
 | JPM | 11 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| META | 11 | 1 | 0.50 | 0 | 0 | 0 | 4 |
+| META | 11 | 1 | 0.47 | 0 | 0 | 0 | 4 |
 | MSFT | 17 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 | NKE | 2 | 0 | 0.00 | 0 | 0 | 0 | 7 |
 | NVDA | 34 | 0 | 0.00 | 0 | 0 | 0 | 1 |
 | PFE | 7 | 0 | 0.00 | 0 | 0 | 0 | 5 |
-| TSLA | 27 | 2 | 1.00 | 1 | 0 | 1 | 4 |
+| TSLA | 27 | 2 | 0.93 | 1 | 0 | 1 | 4 |
 | WFC | 3 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| XOM | 4 | 0 | 0.00 | 0 | 0 | 0 | 7 |
+| XOM | 5 | 0 | 0.00 | 0 | 0 | 0 | 8 |
 | ZION | 2 | 0 | 0.00 | 0 | 0 | 0 | 5 |
 
 ## Precision (human-labeled)
@@ -49,6 +49,7 @@ A flag that mostly follows a fall (negative *before*) is reporting the move, not
 | INTC | 2026-10-23T00:00:00Z | -10.4% | +7.7% | +1.7% | Why Intel Stock Fell Today | The Motley Fool |
 | INTC | 2026-10-23T01:00:00Z | -10.4% | +7.7% | +1.7% | Why Intel Stock Fell Today | The Motley Fool |
 | TSLA | 2026-10-23T07:15:00Z | +3.4% | +7.7% | -0.6% | Tesla Automotive Revenue Fell 3 %, and Energy Generation and Storage T |
+| META | 2026-10-25T11:15:00Z | -9.4% | -4.3% | -4.7% | I Wanted to Get Hot in My 40s and Spent Meta Salary on Cosmetic Work |
 
 - Flags followed by a ≥10% drawdown within 5 sessions: 0
 - Flags preceded by a ≥10% fall in the prior 5 sessions: 2
