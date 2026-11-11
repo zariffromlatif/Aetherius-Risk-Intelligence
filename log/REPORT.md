@@ -1,34 +1,34 @@
 # Aetherius Forward Test — Live Report
 
-- Runs: 26 (2026-10-16T08:12:28Z → 2026-11-10T09:47:14Z), ~3.6 weeks
+- Runs: 27 (2026-10-16T08:12:28Z → 2026-11-11T09:22:16Z), ~3.7 weeks
 - Watchlist SHA-256: `5bde996cb7b19a6cb1af4cf24ecde6c6fce73a71d7731a8d8cdf337154fca3d0`
-- Matched observations logged: 231
-- Shippable flags: 7 (2.0 per week across the whole list)
-- Runs with fetch errors: 25
+- Matched observations logged: 237
+- Shippable flags: 7 (1.9 per week across the whole list)
+- Runs with fetch errors: 26
 
 ## Alert burden by name
 
-News fetch failures count runs (of 26) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
+News fetch failures count runs (of 27) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
 
 | Ticker | Matched obs | Flags | Flags / week | Labeled | Material | Not material | News fetch failures |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| AAPL | 11 | 0 | 0.00 | 0 | 0 | 0 | 4 |
-| AMZN | 11 | 0 | 0.00 | 0 | 0 | 0 | 19 |
+| AAPL | 11 | 0 | 0.00 | 0 | 0 | 0 | 5 |
+| AMZN | 11 | 0 | 0.00 | 0 | 0 | 0 | 20 |
 | BA | 3 | 0 | 0.00 | 0 | 0 | 0 | 12 |
 | BAC | 8 | 0 | 0.00 | 0 | 0 | 0 | 5 |
-| COIN | 4 | 0 | 0.00 | 0 | 0 | 0 | 9 |
-| DIS | 1 | 1 | 0.28 | 0 | 0 | 0 | 7 |
+| COIN | 4 | 0 | 0.00 | 0 | 0 | 0 | 10 |
+| DIS | 1 | 1 | 0.27 | 0 | 0 | 0 | 7 |
 | GM | 8 | 0 | 0.00 | 0 | 0 | 0 | 11 |
 | GOOGL | 15 | 0 | 0.00 | 0 | 0 | 0 | 7 |
-| GS | 12 | 0 | 0.00 | 0 | 0 | 0 | 9 |
-| INTC | 17 | 3 | 0.84 | 0 | 0 | 0 | 7 |
+| GS | 12 | 0 | 0.00 | 0 | 0 | 0 | 10 |
+| INTC | 17 | 3 | 0.81 | 0 | 0 | 0 | 7 |
 | JPM | 12 | 0 | 0.00 | 0 | 0 | 0 | 5 |
-| META | 12 | 1 | 0.28 | 0 | 0 | 0 | 6 |
+| META | 12 | 1 | 0.27 | 0 | 0 | 0 | 6 |
 | MSFT | 20 | 0 | 0.00 | 0 | 0 | 0 | 2 |
-| NKE | 3 | 0 | 0.00 | 0 | 0 | 0 | 9 |
-| NVDA | 40 | 0 | 0.00 | 0 | 0 | 0 | 2 |
+| NKE | 3 | 0 | 0.00 | 0 | 0 | 0 | 10 |
+| NVDA | 46 | 0 | 0.00 | 0 | 0 | 0 | 2 |
 | PFE | 10 | 0 | 0.00 | 0 | 0 | 0 | 8 |
-| TSLA | 29 | 2 | 0.56 | 1 | 0 | 1 | 8 |
+| TSLA | 29 | 2 | 0.54 | 1 | 0 | 1 | 8 |
 | WFC | 3 | 0 | 0.00 | 0 | 0 | 0 | 6 |
 | XOM | 9 | 0 | 0.00 | 0 | 0 | 0 | 10 |
 | ZION | 3 | 0 | 0.00 | 0 | 0 | 0 | 6 |
