@@ -1,34 +1,34 @@
 # Aetherius Forward Test — Live Report
 
-- Runs: 37 (2026-10-16T08:12:28Z → 2026-11-21T09:47:33Z), ~5.1 weeks
+- Runs: 38 (2026-10-16T08:12:28Z → 2026-11-22T09:44:41Z), ~5.3 weeks
 - Watchlist SHA-256: `5bde996cb7b19a6cb1af4cf24ecde6c6fce73a71d7731a8d8cdf337154fca3d0`
 - Matched observations logged: 281
 - Shippable flags: 13 (2.5 per week across the whole list)
-- Runs with fetch errors: 36
+- Runs with fetch errors: 37
 
 ## Alert burden by name
 
-News fetch failures count runs (of 37) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
+News fetch failures count runs (of 38) in which GDELT returned nothing for that name; those days are coverage gaps, not quiet days.
 
 | Ticker | Matched obs | Flags | Flags / week | Labeled | Material | Not material | News fetch failures |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | AAPL | 13 | 0 | 0.00 | 0 | 0 | 0 | 7 |
-| AMZN | 13 | 0 | 0.00 | 0 | 0 | 0 | 30 |
+| AMZN | 13 | 0 | 0.00 | 0 | 0 | 0 | 31 |
 | BA | 3 | 0 | 0.00 | 0 | 0 | 0 | 14 |
 | BAC | 9 | 0 | 0.00 | 0 | 0 | 0 | 7 |
 | COIN | 4 | 0 | 0.00 | 0 | 0 | 0 | 14 |
 | DIS | 5 | 1 | 0.19 | 0 | 0 | 0 | 11 |
 | GM | 8 | 0 | 0.00 | 0 | 0 | 0 | 15 |
-| GOOGL | 19 | 3 | 0.58 | 0 | 0 | 0 | 8 |
+| GOOGL | 19 | 3 | 0.57 | 0 | 0 | 0 | 8 |
 | GS | 13 | 0 | 0.00 | 0 | 0 | 0 | 12 |
-| INTC | 18 | 3 | 0.58 | 0 | 0 | 0 | 10 |
+| INTC | 18 | 3 | 0.57 | 0 | 0 | 0 | 10 |
 | JPM | 14 | 0 | 0.00 | 0 | 0 | 0 | 8 |
 | META | 14 | 1 | 0.19 | 0 | 0 | 0 | 9 |
-| MSFT | 23 | 0 | 0.00 | 0 | 0 | 0 | 4 |
+| MSFT | 23 | 0 | 0.00 | 0 | 0 | 0 | 5 |
 | NKE | 6 | 0 | 0.00 | 0 | 0 | 0 | 14 |
-| NVDA | 61 | 3 | 0.58 | 0 | 0 | 0 | 6 |
+| NVDA | 61 | 3 | 0.57 | 0 | 0 | 0 | 6 |
 | PFE | 10 | 0 | 0.00 | 0 | 0 | 0 | 11 |
-| TSLA | 32 | 2 | 0.39 | 1 | 0 | 1 | 9 |
+| TSLA | 32 | 2 | 0.38 | 1 | 0 | 1 | 9 |
 | WFC | 3 | 0 | 0.00 | 0 | 0 | 0 | 12 |
 | XOM | 10 | 0 | 0.00 | 0 | 0 | 0 | 11 |
 | ZION | 3 | 0 | 0.00 | 0 | 0 | 0 | 12 |
